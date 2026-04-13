@@ -346,7 +346,9 @@
         sensitivity: 1.5,
         smoothedEnergy: 0,
         bassBoost: 0,
-        particles: []
+        particles: [],
+        barPeaks: [],
+        barPeakVelocity: []
       };
 
       const canvas = document.getElementById("visualizerCanvas");
@@ -495,7 +497,16 @@
         const gap = Math.max(1.5, width * 0.002);
         const totalGap = gap * (bars - 1);
         const barWidth = (width - totalGap) / bars;
+        const capHeight = Math.max(2, Math.floor(height * 0.008));
+        const capSpacing = Math.max(2, Math.floor(height * 0.004));
+        const gravity = Math.max(0.2, height * 0.00085);
         let x = 0;
+
+        // Keep peak arrays in sync with current bar count.
+        if (appState.barPeaks.length !== bars) {
+          appState.barPeaks = new Array(bars).fill(height - capHeight);
+          appState.barPeakVelocity = new Array(bars).fill(0);
+        }
 
         ctx.shadowBlur = 22 + energy * 36;
         ctx.shadowColor = `hsla(${getDynamicHue(energy)}, 100%, 65%, 0.95)`;
@@ -512,6 +523,32 @@
           gradient.addColorStop(1, `hsla(${(hue + 50) % 360}, 100%, 45%, 0.85)`);
           ctx.fillStyle = gradient;
           ctx.fillRect(x, y, Math.max(1, barWidth), h);
+
+          // Peak cap behavior:
+          // - When bar rises, cap is pushed upward.
+          // - Otherwise cap falls down gradually.
+          const targetCapY = Math.max(0, y - capSpacing - capHeight);
+          if (targetCapY < appState.barPeaks[i]) {
+            appState.barPeaks[i] = targetCapY;
+            appState.barPeakVelocity[i] = 0;
+          } else {
+            appState.barPeakVelocity[i] += gravity;
+            appState.barPeaks[i] += appState.barPeakVelocity[i];
+            const floorY = height - capHeight;
+            if (appState.barPeaks[i] > floorY) {
+              appState.barPeaks[i] = floorY;
+              appState.barPeakVelocity[i] = 0;
+            }
+          }
+
+          const capHue = (hue + 18) % 360;
+          ctx.fillStyle = `hsla(${capHue}, 100%, 82%, 0.98)`;
+          ctx.fillRect(
+            x,
+            appState.barPeaks[i],
+            Math.max(1, barWidth),
+            capHeight
+          );
 
           x += barWidth + gap;
         }
