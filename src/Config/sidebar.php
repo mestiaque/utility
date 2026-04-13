@@ -12,7 +12,7 @@ return [
     ],
 
     [
-        'title' => 'Laravel Feature Generator',
+        'title' => 'Feature Generator',
         'icon'  => 'fas fa-cogs',
         'route' => 'ut.laravelFeatureGenerate',
         'for_active' => 'ut.laravelFeatureGenerate',
