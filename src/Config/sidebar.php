@@ -21,15 +21,15 @@ return [
         'sl' => 11
     ],
 
-    [
-        'title' => 'Wedding Card Generator',
-        'icon'  => 'fas fa-heart',
-        'route' => 'ut.wedding-card',
-        'for_active' => 'ut.wedding-card',
-        'icon_color' => 'icc-3',
-        'permit' => 'me.dashboard',
-        'sl' => 12
-    ],
+    // [
+    //     'title' => 'Wedding Card Generator',
+    //     'icon'  => 'fas fa-heart',
+    //     'route' => 'ut.wedding-card',
+    //     'for_active' => 'ut.wedding-card',
+    //     'icon_color' => 'icc-3',
+    //     'permit' => 'me.dashboard',
+    //     'sl' => 12
+    // ],
     [
         'title' => 'Feel Music',
         'icon'  => 'fas fa-music',
