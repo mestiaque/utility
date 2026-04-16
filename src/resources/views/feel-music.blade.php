@@ -24,6 +24,24 @@
     </section>
 
     <section class="viz-wrap panel">
+      <button
+        id="fullscreenBtn"
+        class="fullscreen-btn"
+        type="button"
+        aria-label="Enter fullscreen"
+        title="Fullscreen"
+      >
+        <span class="icon-enter" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M4 9V4h5v2H6v3H4zm10-5h5v5h-2V6h-3V4zM4 15h2v3h3v2H4v-5zm14 0h2v5h-5v-2h3v-3z" />
+          </svg>
+        </span>
+        <span class="icon-exit" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M8 4H6v6h6V8H8V4zm8 0v4h-4v2h6V4h-2zM6 14v6h6v-2H8v-4H6zm10 4h-4v2h6v-6h-2v4z" />
+          </svg>
+        </span>
+      </button>
       <canvas id="visualizerCanvas"></canvas>
       <div class="status">
         <div id="statusChip" class="status-chip visible">Press Start to begin</div>
@@ -220,6 +238,109 @@
       border-radius: 20px;
     }
 
+    .fullscreen-btn {
+      position: absolute;
+      top: clamp(0.55rem, 1.2vw, 0.9rem);
+      right: clamp(0.55rem, 1.2vw, 0.9rem);
+      z-index: 5;
+      width: 2.45rem;
+      height: 2.45rem;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      border: 0;
+      background: linear-gradient(160deg, rgba(4, 10, 22, 0.78), rgba(6, 14, 27, 0.58));
+      backdrop-filter: blur(10px);
+      color: #e9f6ff;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+        0 10px 28px rgba(0, 0, 0, 0.42),
+        0 0 24px rgba(86, 211, 255, 0.16);
+      transition: transform 180ms ease, box-shadow 220ms ease, background 220ms ease;
+    }
+
+    .fullscreen-btn::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: linear-gradient(120deg, rgba(131, 228, 255, 0.42), rgba(162, 123, 255, 0.22));
+      opacity: 0.42;
+      z-index: -1;
+      filter: blur(0.2px);
+    }
+
+    .fullscreen-btn:hover {
+      transform: translateY(-1px) scale(1.02);
+      background: linear-gradient(160deg, rgba(8, 18, 34, 0.82), rgba(8, 18, 34, 0.62));
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.26),
+        0 12px 30px rgba(0, 0, 0, 0.46),
+        0 0 28px rgba(86, 211, 255, 0.24);
+    }
+
+    .fullscreen-btn:active {
+      transform: scale(0.96);
+    }
+
+    .fullscreen-btn:focus-visible {
+      outline: none;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.26),
+        0 0 0 3px rgba(86, 211, 255, 0.25),
+        0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    .fullscreen-btn span {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      transition: opacity 220ms ease, transform 220ms ease;
+    }
+
+    .fullscreen-btn svg {
+      width: 1.05rem;
+      height: 1.05rem;
+      fill: currentColor;
+    }
+
+    .fullscreen-btn .icon-exit {
+      opacity: 0;
+      transform: scale(0.72) rotate(-18deg);
+    }
+
+    .fullscreen-btn.is-fullscreen .icon-enter {
+      opacity: 0;
+      transform: scale(0.72) rotate(16deg);
+    }
+
+    .fullscreen-btn.is-fullscreen .icon-exit {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+
+    .viz-wrap:fullscreen .fullscreen-btn,
+    .viz-wrap:-webkit-full-screen .fullscreen-btn {
+      top: max(0.9rem, env(safe-area-inset-top));
+      right: max(0.9rem, env(safe-area-inset-right));
+    }
+
+    .viz-wrap:fullscreen,
+    .viz-wrap:-webkit-full-screen {
+      width: 100vw;
+      height: 100vh;
+      max-width: none;
+      max-height: none;
+      border-radius: 0;
+      margin: 0;
+    }
+
+    .viz-wrap:fullscreen canvas,
+    .viz-wrap:-webkit-full-screen canvas {
+      border-radius: 0;
+    }
+
     canvas {
       width: 100%;
       height: 100%;
@@ -352,10 +473,12 @@
       };
 
       const canvas = document.getElementById("visualizerCanvas");
+      const vizWrap = document.querySelector(".viz-wrap");
       const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
       const startBtn = document.getElementById("startBtn");
       const modeBtn = document.getElementById("modeBtn");
       const stopBtn = document.getElementById("stopBtn");
+      const fullscreenBtn = document.getElementById("fullscreenBtn");
       const statusChip = document.getElementById("statusChip");
       const modePill = document.getElementById("modePill");
       const hintText = document.getElementById("hintText");
@@ -385,6 +508,78 @@
         if (canvas.width !== width || canvas.height !== height) {
           canvas.width = width;
           canvas.height = height;
+        }
+      }
+
+      function getFullscreenElement() {
+        return (
+          document.fullscreenElement ||
+          document.webkitFullscreenElement ||
+          null
+        );
+      }
+
+      function syncFullscreenUi() {
+        const isFullscreen = !!getFullscreenElement();
+        fullscreenBtn.classList.toggle("is-fullscreen", isFullscreen);
+        fullscreenBtn.setAttribute(
+          "aria-label",
+          isFullscreen ? "Exit fullscreen" : "Enter fullscreen"
+        );
+        fullscreenBtn.setAttribute(
+          "title",
+          isFullscreen ? "Exit fullscreen" : "Fullscreen"
+        );
+      }
+
+      async function lockLandscape() {
+        try {
+          if (screen.orientation && typeof screen.orientation.lock === "function") {
+            await screen.orientation.lock("landscape");
+          }
+        } catch (_) {
+          // orientation lock is not supported or not allowed — ignore silently
+        }
+      }
+
+      async function unlockOrientation() {
+        try {
+          if (screen.orientation && typeof screen.orientation.unlock === "function") {
+            screen.orientation.unlock();
+          }
+        } catch (_) {}
+      }
+
+      async function toggleFullscreen() {
+        if (!vizWrap) return;
+
+        const activeFullscreenElement = getFullscreenElement();
+        try {
+          if (activeFullscreenElement) {
+            if (document.exitFullscreen) {
+              await document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+              document.webkitExitFullscreen();
+            }
+            await unlockOrientation();
+            setStatus("Exited fullscreen");
+          } else if (vizWrap.requestFullscreen) {
+            await vizWrap.requestFullscreen({ navigationUI: "hide" });
+            await lockLandscape();
+            setStatus("Fullscreen enabled");
+          } else if (vizWrap.webkitRequestFullscreen) {
+            vizWrap.webkitRequestFullscreen();
+            await lockLandscape();
+            setStatus("Fullscreen enabled");
+          } else {
+            setStatus("Fullscreen is not supported in this browser.", true);
+            return;
+          }
+
+          resizeCanvas();
+          setTimeout(hideStatus, 700);
+        } catch (error) {
+          setStatus("Could not switch fullscreen mode.", true);
         }
       }
 
@@ -793,6 +988,15 @@
       modeBtn.addEventListener("click", toggleMode);
       sensitivityRange.addEventListener("input", updateSensitivity);
       document.addEventListener("visibilitychange", handleVisibility);
+      fullscreenBtn.addEventListener("click", toggleFullscreen);
+      document.addEventListener("fullscreenchange", () => {
+        syncFullscreenUi();
+        resizeCanvas();
+      });
+      document.addEventListener("webkitfullscreenchange", () => {
+        syncFullscreenUi();
+        resizeCanvas();
+      });
 
       window.addEventListener("resize", () => {
         devicePixelRatioSafe = Math.min(window.devicePixelRatio || 1, 2);
@@ -805,6 +1009,7 @@
       });
 
       resizeCanvas();
+      syncFullscreenUi();
       resetParticles();
       ctx.fillStyle = "#04060d";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
