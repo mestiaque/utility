@@ -1,5 +1,5 @@
 @extends('me::master')
-@section('title', 'Bajar List Items')
+@section('title', $group->title)
 @push('buttons')
     <a href="{{ route('ut.bajar-list.groups.index') }}" class="btn btn-sm btn-encodex-list">Back</a>
     <a href="{{ route('ut.bajar-list.items.print', $group) }}?search={{ request('search') }}&status={{ request('status') }}" target="_blank" class="btn btn-sm btn-encodex-print"><i class="fa fa-print"></i> Print</a>

@@ -1,5 +1,5 @@
 @extends('me::master')
-@section('title', 'Bajar List Groups')
+@section('title', 'Bajar List')
 @push('buttons')
     <button class="btn btn-sm btn-encodex-create" data-bs-toggle="modal" data-bs-target="#createGroupModal">Create Group</button>
 @endpush
