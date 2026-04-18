@@ -21,7 +21,11 @@
             <td>{{ $item->item_name }}</td>
             <td>{{ $item->brand }}</td>
             <td>{{ $item->source }}</td>
-            <td class="text-right">৳{{ toBanglaNumber($item->price, 2) }}</td>
+            <td class="text-right">
+                @if($item->price > 0)
+                    ৳ {{ toBanglaNumber($item->price, 2) }}
+                @endif
+            </td>
             <td>{{ $item->description }}</td>
             {{-- <td>{{ ucfirst($item->status) }}</td> --}}
         </tr>
@@ -36,3 +40,12 @@
     </tfoot>
 </table>
 @endsection
+
+@push('css')
+<style>
+    table td, table th {
+        font-size: 10px !important;
+        padding: 0.25rem !important;
+    }
+</style>
+@endpush

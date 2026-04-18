@@ -48,7 +48,7 @@
                         <td ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'item_name')">{{ $item->item_name }}</td>
                         <td ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'brand')">{{ $item->brand }}</td>
                         <td ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'source')">{{ $item->source }}</td>
-                        <td ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'price')">{{ toBanglaNumber($item->price, 2) }}</td>
+                        <td ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'price')" class="text-end">{{ toBanglaNumber($item->price, 2) }}</td>
                         <td ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'description')">{{ $item->description }}</td>
                         <td>
                             @if($item->status === 'pending')
@@ -80,6 +80,13 @@
                     </tr>
                     @endforeach
                 </tbody>
+                <tfoot>
+                    <tr class="text-center">
+                        <th colspan="3" class="text-end">Total:</th>
+                        <th class="text-end">{{ toBanglaNumber($items->sum('price'), 2) }}</th>
+                        <th colspan="4"></th>
+                    </tr>
+                </tfoot>
             </table>
         </div>
 
@@ -182,7 +189,7 @@
 
 @endsection
 
-@push('css')
+@push('js')
     <script>
         function makeEditable(td, url, field) {
             if (td.isContentEditable) return;
