@@ -2,8 +2,8 @@
 @section('title', 'Bajar List Items')
 @push('buttons')
     <a href="{{ route('ut.bajar-list.groups.index') }}" class="btn btn-sm btn-encodex-list">Back</a>
-    <button class="btn btn-sm btn-encodex-create" data-bs-toggle="modal" data-bs-target="#createItemModal">Add Item</button>
     <a href="{{ route('ut.bajar-list.items.print', $group) }}?search={{ request('search') }}&status={{ request('status') }}" target="_blank" class="btn btn-sm btn-encodex-print"><i class="fa fa-print"></i> Print</a>
+    <button class="btn btn-sm btn-encodex-create" data-bs-toggle="modal" data-bs-target="#createItemModal">Add Item</button>
 @endpush
 
 @section('content')
@@ -48,7 +48,7 @@
                         <td ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'item_name')">{{ $item->item_name }}</td>
                         <td ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'brand')">{{ $item->brand }}</td>
                         <td ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'source')">{{ $item->source }}</td>
-                        <td ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'price')">{{ $item->price }}</td>
+                        <td ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'price')">{{ toBanglaNumber($item->price, 2) }}</td>
                         <td ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'description')">{{ $item->description }}</td>
                         <td>
                             @if($item->status === 'pending')

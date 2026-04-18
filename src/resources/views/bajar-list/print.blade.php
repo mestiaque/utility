@@ -7,11 +7,11 @@
 <table class="table table-bordered table-sm mt-3 table-encondex">
     <thead>
         <tr>
-            <th>Item Name</th>
-            <th>Brand</th>
-            <th>Source</th>
-            <th>Price</th>
-            <th>Description</th>
+            <th>@if(app()->getLocale() === 'bn') আইটেমের নাম @else Item Name @endif</th>
+            <th>@if(app()->getLocale() === 'bn') ব্র্যান্ড @else Brand @endif</th>
+            <th>@if(app()->getLocale() === 'bn') উৎস @else Source @endif</th>
+            <th>@if(app()->getLocale() === 'bn') মূল্য @else Price @endif</th>
+            <th>@if(app()->getLocale() === 'bn') বিবরণ @else Description @endif</th>
             {{-- <th>Status</th> --}}
         </tr>
     </thead>
@@ -21,7 +21,7 @@
             <td>{{ $item->item_name }}</td>
             <td>{{ $item->brand }}</td>
             <td>{{ $item->source }}</td>
-            <td class="text-right">৳{{ number_format($item->price, 2) }}</td>
+            <td class="text-right">৳{{ toBanglaNumber($item->price, 2) }}</td>
             <td>{{ $item->description }}</td>
             {{-- <td>{{ ucfirst($item->status) }}</td> --}}
         </tr>
@@ -29,8 +29,8 @@
     </tbody>
     <tfoot>
         <tr >
-            <th colspan="3" class="text-right" style="background: rgb(243, 239, 239) !important">Total Amount:</th>
-            <th colspan="1" class="text-right" style="background: rgb(243, 239, 239) !important">৳ {{ number_format($group->total_amount ?? 0, 2) }}</th>
+            <th colspan="3" class="text-right" style="background: rgb(243, 239, 239) !important">@if(app()->getLocale() === 'bn') মোট মূল্য @else Total Amount @endif</th>
+            <th colspan="1" class="text-right" style="background: rgb(243, 239, 239) !important">৳ {{ toBanglaNumber($group->total_amount ?? 0, 2) }}</th>
             <th style="background: rgb(243, 239, 239) !important"></th>
         </tr>
     </tfoot>

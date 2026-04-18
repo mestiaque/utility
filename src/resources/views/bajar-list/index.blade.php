@@ -28,14 +28,14 @@
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <div>
                                         <h6 class="card-title fw-bold mb-0 text-primary">{{ $group->title }}</h6> 
-                                        <sup class="badge text-primary">{{ $group->items_count ?? 0 }}</sup>
+                                        <sup class="badge text-dark">{{ count($group->items ?? []) }}</sup>
                                     </div>
                                 </div>
 
                                 <!-- Center Section: Amount -->
                                 <div class="text-center my-3">
                                     <h4 class="fw-bold mb-0 text-success">
-                                        ৳ {{ number_format($group->total_amount ?? 0, 2) }}
+                                        ৳ {{ toBanglaNumber($group->items->sum('price'), 2) }}
                                     </h4>
                                 </div>
 
