@@ -39,6 +39,15 @@ return [
         'permit' => 'me.dashboard',
         'sl' => 13
     ],
+    [
+        'title' => 'Bajar List',
+        'icon'  => 'fas fa-list',
+        'route' => 'ut.bajar-list.groups.index',
+        'for_active' => 'ut.bajar-list.*',
+        'icon_color' => 'icc-9',
+        'permit' => 'me.dashboard',
+        'sl' => 14
+    ],
 
 ];
 
