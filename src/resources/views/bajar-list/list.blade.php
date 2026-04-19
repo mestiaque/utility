@@ -231,37 +231,70 @@
                 }
             });
 
+            // Extract item ID from the edit modal button's data-bs-target (or from url)
+            var itemId = null;
+            var editBtn = tr.querySelector('.btn-encodex-edit');
+            if (editBtn && editBtn.getAttribute('data-bs-target')) {
+                var modalId = editBtn.getAttribute('data-bs-target');
+                var match = modalId.match(/#editItemModal(\d+)/);
+                if (match) itemId = match[1];
+            }
+            // Fallback: try to extract from url
+            if (!itemId && url) {
+                var urlMatch = url.match(/\/(\d+)(?:\?.*)?$/);
+                if (urlMatch) itemId = urlMatch[1];
+            }
+            if (!itemId) {
+                alert('Item ID not found.');
+                td.innerText = oldValue;
+                td.contentEditable = false;
+                return;
+            }
+
+            // API endpoint (adjust if needed)
+            var apiUrl = '/api/bajar-list/items/' + itemId;
+
             function saveEdit() {
                 var value = td.innerText.trim();
                 td.contentEditable = false;
                 if (value !== oldValue) {
-                    var form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = url;
-                    var token = document.createElement('input');
-                    token.type = 'hidden';
-                    token.name = '_token';
-                    token.value = '{{ csrf_token() }}';
-                    form.appendChild(token);
-                    var method = document.createElement('input');
-                    method.type = 'hidden';
-                    method.name = '_method';
-                    method.value = 'PUT';
-                    form.appendChild(method);
-                    // Add all fields as hidden, override the edited one
+                    // Prepare data for API
+                    var data = {};
                     fields.forEach(function(f) {
-                        var input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = f;
                         if (f === field) {
-                            input.value = value;
+                            data[f] = value;
                         } else if (fieldMap[f] !== undefined) {
-                            input.value = fieldMap[f];
+                            data[f] = fieldMap[f];
                         }
-                        form.appendChild(input);
                     });
-                    document.body.appendChild(form);
-                    form.submit();
+
+                    td.innerText = '...'; // show loading
+
+                    fetch(apiUrl, {
+                        method: 'PUT',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json ? response.json() : response.text();
+                    })
+                    .then(function(json) {
+                        td.innerText = value;
+                        td.style.backgroundColor = '#d4edda'; // green highlight
+                        setTimeout(function() { td.style.backgroundColor = ''; }, 800);
+                    })
+                    .catch(function(error) {
+                        td.innerText = oldValue;
+                        td.style.backgroundColor = '#f8d7da'; // red highlight
+                        setTimeout(function() { td.style.backgroundColor = ''; }, 1200);
+                        alert('Failed to save.');
+                    });
                 } else {
                     td.innerText = oldValue;
                 }

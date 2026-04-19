@@ -115,4 +115,20 @@ class BajarListController extends Controller
         $items = $query->orderByDesc('created_at')->get();
         return view('utility::bajar-list.print', compact('group', 'items'));
     }
+
+        // API method for inline update
+    public function apiListUpdate(Request $request, $itemId)
+    {
+        $item = BajarListItem::findOrFail($itemId);
+        $validated = $request->validate([
+            'item_name' => 'required|string|max:255',
+            'brand' => 'nullable|string|max:255',
+            'source' => 'nullable|string|max:255',
+            'price' => 'nullable|numeric',
+            'description' => 'nullable|string',
+            'status' => 'required|in:pending,purchased,hold',
+        ]);
+        $item->update($validated);
+        return response()->json(['success' => true, 'item' => $item]);
+    }
 }
