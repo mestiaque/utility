@@ -101,6 +101,7 @@ class BajarListController extends Controller
 
     public function listPrint(BajarListGroup $group, Request $request)
     {
+        // dd($request->all());
         $query = $group->items();
         if ($request->search) {
             $query->where(function($q) use ($request) {
@@ -108,6 +109,10 @@ class BajarListController extends Controller
                   ->orWhere('brand', 'like', '%'.$request->search.'%')
                   ->orWhere('source', 'like', '%'.$request->search.'%');
             });
+        }
+        if ($request->ids) {
+            $ids = explode(',', $request->ids);
+            $query->whereIn('id', $ids);
         }
         if ($request->status) {
             $query->where('status', $request->status);
