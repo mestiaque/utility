@@ -1,12 +1,12 @@
 @extends('me::master')
 @section('title', $group->title)
 @push('buttons')
-    <button class="btn btn-sm btn-encodex-payment" data-bs-toggle="modal" data-bs-target="#printSettingsModal">Print Settings</button>
-    <a href="{{ route('ut.bajar-list.groups.index') }}" class="btn btn-sm btn-encodex-list">Back</a>
+    <button class="btn btn-sm btn-encodex-payment" data-bs-toggle="modal" data-bs-target="#printSettingsModal"><i class="fa fa-cog"></i></button>
+    <a href="{{ route('ut.bajar-list.groups.index') }}" class="btn btn-sm btn-encodex-list"><i class="fa fa-list"></i></a>
     <a href  = "javascript:void(0)" id = "printBtn" target = "_blank" class = "btn btn-sm btn-encodex-print">
-        <i class = "fa fa-print"></i> Print
+        <i class = "fa fa-print"></i>
     </a>
-    <button class="btn btn-sm btn-encodex-create" data-bs-toggle="modal" data-bs-target="#createItemModal">Add Item</button>
+    <button class="btn btn-sm btn-encodex-create" data-bs-toggle="modal" data-bs-target="#createItemModal"><i class="fa fa-plus"></i></button>
 @endpush
 
 @section('content')
