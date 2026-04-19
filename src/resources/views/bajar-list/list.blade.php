@@ -13,7 +13,7 @@
 
     <div class="card">
         <div class="card-body">
-            <form method="GET" class="mb-3">
+            <form method="GET" class="filterForm" class="mb-3">
                 <div class="row">
                     <div class="col-md-3">
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search items..." class="form-control form-control-sm">
@@ -312,7 +312,7 @@ $(document).ready(function () {
     $('#printBtn').on('click', function () {
 
         // form থেকে সব input collect
-        let query = $('form').serialize();
+        let query = $('.filterForm').serialize();
 
         // print url
         let url = "{{ route('ut.bajar-list.items.print', $group) }}?" + query;
