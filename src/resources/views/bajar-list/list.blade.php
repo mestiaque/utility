@@ -14,7 +14,7 @@
     <div class="card">
         <div class="card-body">
             <form method="GET" class="filterForm" class="mb-3">
-                <div class="row">
+                <div class="row mb-2">
                     <div class="col-md-3">
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search items..." class="form-control form-control-sm">
                         <input type="hidden" name="ids" id="idsInput" value="{{ request('ids') }}">
@@ -38,7 +38,7 @@
                     <div class="modal-dialog glass-card">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">Print Settings</h5>
+                                <h5 class="modal-title">Print Settings <input type="checkbox" value="1" class="col-toggle form-check-input select-all-settings"></h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
@@ -47,42 +47,42 @@
                                         <tr>
                                             <th>Item Name</th>
                                             <td>
-                                                <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_item_name" @if(request('p_item_name')==1 ) checked @endif> Column </label>
+                                                <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_item_name" @if(request('p_item_name')==1 ) checked @endif> Column </label>
                                                 <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_item_name_value" @if(request('p_item_name_value')==1) checked @endif> Value </label>
                                             </td>
                                         </tr>
-                                        <tr>
+                                        <tr>    
                                             <th>Brand</th>
                                             <td>
-                                                <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_brand" @if(request('p_brand')==1) checked @endif> Column </label>
+                                                <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_brand" @if(request('p_brand')==1) checked @endif> Column </label>
                                                 <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_brand_value" @if(request('p_brand_value')==1) checked @endif> Value </label>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th>Source</th>
                                             <td>
-                                                <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_source" @if(request('p_source')==1) checked @endif> Column </label>
+                                                <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_source" @if(request('p_source')==1) checked @endif> Column </label>
                                                 <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_source_value" @if(request('p_source_value')==1) checked @endif> Value </label>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th>Price</th>
                                             <td>
-                                                <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_price" @if(request('p_price')==1) checked @endif> Column </label>
+                                                <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_price" @if(request('p_price')==1) checked @endif> Column </label>
                                                 <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_price_value" @if(request('p_price_value')==1) checked @endif> Value </label>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th>Description</th>
                                             <td>
-                                                <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_description" @if(request('p_description')==1) checked @endif> Column </label>
+                                                <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_description" @if(request('p_description')==1) checked @endif> Column </label>
                                                 <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_description_value" @if(request('p_description_value')==1) checked @endif> Value </label>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th>Status</th>
                                             <td>
-                                                <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_status" @if(request('p_status')==1) checked @endif> Column </label>
+                                                <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_status" @if(request('p_status')==1) checked @endif> Column </label>
                                                 <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_status_value" @if(request('p_status_value')==1) checked @endif> Value </label>
                                             </td>
                                         </tr>
@@ -219,7 +219,6 @@
         </div>
     @endforeach
 
-
     <div class="modal fade" id="createItemModal" tabindex="-1">
         <div class="modal-dialog glass-card">
             <form class="modal-content" method="POST" action="{{ route('ut.bajar-list.items.store', $group) }}">
@@ -265,7 +264,6 @@
         </div>
     </div>
 
-
 @endsection
 
 @push('js')
@@ -283,7 +281,10 @@ $(document).ready(function () {
     $(document).on('change', '.row-check', function () {
         updateIds();
     });
-
+    $('.row-check').closest('td').on('click', function (e) {
+        if ($(e.target).hasClass('row-check')) return;
+        $(this).children('.row-check').trigger('click');
+    });
     // Check all checkbox change
     $(document).on('change', '#checkAll', function () {
         markAll($(this).is(':checked'));
@@ -322,6 +323,12 @@ $(document).ready(function () {
     });
 
     updateIds();
+});
+
+$('.select-all-settings').on('change', function () {
+    let isChecked = $(this).is(':checked');
+
+    $('.col-toggle.form-check-input[name^="p_"]').prop('checked', isChecked);
 });
 
 
