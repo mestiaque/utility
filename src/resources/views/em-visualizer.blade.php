@@ -1,6 +1,6 @@
 @extends('me::master')
 
-@section('title', 'Feel Music')
+@section('title', 'EM Visualizer')
 @push('buttons')
     <section class="top panel">
       <div class="controls">

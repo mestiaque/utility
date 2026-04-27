@@ -19,7 +19,7 @@ Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'aut
     Route::post('/generate-nested-folder', [UtilityController::class, 'generateNestedFolder'])->name('generateNestedFolder');
 
     Route::get('/wedding-card', [UtilityController::class, 'weddingCard'])->name('wedding-card');
-    Route::get('/feel-music', [UtilityController::class, 'feelMusic'])->name('feel-music');
+    Route::get('/em-visualizer', [UtilityController::class, 'emVisualizer'])->name('em-visualizer');
 
 
     Route::prefix('bajar-list')->group(function () {

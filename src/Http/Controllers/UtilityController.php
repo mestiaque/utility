@@ -306,9 +306,9 @@ class {$name}Controller extends Controller
         }
     }
 
-    public function feelMusic()
+    public function emVisualizer()
     {
-        return view('utility::feel-music');
+        return view('utility::em-visualizer');
     }
 
 

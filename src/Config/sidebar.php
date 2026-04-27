@@ -31,10 +31,10 @@ return [
     //     'sl' => 12
     // ],
     [
-        'title' => 'Feel Music',
+        'title' => 'EM Visualizer',
         'icon'  => 'fas fa-music',
-        'route' => 'ut.feel-music',
-        'for_active' => 'ut.feel-music',
+        'route' => 'ut.em-visualizer',
+        'for_active' => 'ut.em-visualizer',
         'icon_color' => 'icc-8',
         // 'permit' => 'me.dashboard',
         'sl' => 13
