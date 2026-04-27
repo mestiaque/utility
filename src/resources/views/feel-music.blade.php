@@ -60,10 +60,10 @@
       </div>
     </section>
 
-    {{-- <footer class="bottom panel">
+    <footer class="bottom panel d-none">
       <p id="hintText">Best results: keep volume medium and move device less while viewing.</p>
       <span id="modePill" class="mode-pill">Bars</span>
-    </footer> --}}
+    </footer>
   </main>
 @endsection
 
