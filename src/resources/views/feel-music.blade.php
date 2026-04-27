@@ -6,7 +6,7 @@
       <div class="controls">
         <button id="startBtn" class="btn btn-encodex-active pulse">Start</button>
         <button id="modeBtn" disabled class="btn btn-encodex-edit">Bars</button>
-        <button id="stopBtn" class="btn-encodex-delete hidden">Stop</button>
+        <button id="stopBtn" class="btn btn-encodex-delete hidden">Stop</button>
         <label class="sensitivity" for="sensitivityRange">
           <span>Sensitivity</span>
           <input id="sensitivityRange" type="range" min="0.6" max="2.8" step="0.1" value="1.5" disabled>
@@ -890,7 +890,7 @@
 
           modeBtn.disabled = false;
           stopBtn.classList.remove("hidden");
-          startBtn.classList.add("hidden")
+        //   startBtn.classList.add("hidden")
           sensitivityRange.disabled = false;
 
           hintText.textContent = "Live mic active. Switch modes or adjust sensitivity.";
@@ -965,7 +965,7 @@
         startBtn.classList.add("pulse");
         modeBtn.disabled = true;
         stopBtn.classList.add("hidden");
-        startBtn.classList.remove("hidden");
+        // startBtn.classList.remove("hidden");
         sensitivityRange.disabled = true;
         hintText.textContent = "Visualizer stopped. Press Start to enable microphone again.";
         setStatus("Stopped");
