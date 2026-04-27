@@ -36,7 +36,7 @@ return [
         'route' => 'ut.feel-music',
         'for_active' => 'ut.feel-music',
         'icon_color' => 'icc-8',
-        'permit' => 'me.dashboard',
+        // 'permit' => 'me.dashboard',
         'sl' => 13
     ],
     [

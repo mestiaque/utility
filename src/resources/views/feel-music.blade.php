@@ -1,12 +1,24 @@
 @extends('me::master')
 
 @section('title', 'Feel Music')
+@push('buttons')
+    <section class="top panel">
+      <div class="controls">
+        <button id="startBtn" class="btn btn-encodex-active pulse">Start</button>
+        <button id="modeBtn" disabled class="btn btn-encodex-edit">Bars</button>
+        <button id="stopBtn" class="btn-encodex-delete hidden">Stop</button>
+        <label class="sensitivity" for="sensitivityRange">
+          <span>Sensitivity</span>
+          <input id="sensitivityRange" type="range" min="0.6" max="2.8" step="0.1" value="1.5" disabled>
+        </label>
+      </div>
+@endpush
 
 @section('content')
   <div class="bg-pulse" aria-hidden="true"></div>
 
   <main class="app" aria-label="Real-time microphone visualizer app">
-    <section class="top panel">
+    {{-- <section class="top panel">
       <div class="title-wrap">
         <h1>Realtime Mic Visualizer</h1>
         <p>Tap Start, allow mic access, and speak or play music to animate.</p>
@@ -21,7 +33,7 @@
           <input id="sensitivityRange" type="range" min="0.6" max="2.8" step="0.1" value="1.5" disabled>
         </label>
       </div>
-    </section>
+    </section> --}}
 
     <section class="viz-wrap panel">
       <button
@@ -48,10 +60,10 @@
       </div>
     </section>
 
-    <footer class="bottom panel">
+    {{-- <footer class="bottom panel">
       <p id="hintText">Best results: keep volume medium and move device less while viewing.</p>
       <span id="modePill" class="mode-pill">Bars</span>
-    </footer>
+    </footer> --}}
   </main>
 @endsection
 
@@ -127,15 +139,15 @@
     }
 
     .panel {
-      background: linear-gradient(140deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.05));
+      /* background: linear-gradient(140deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.05)); */
       border: 1px solid var(--glass-border);
       border-radius: 18px;
       backdrop-filter: blur(14px) saturate(120%);
-      box-shadow: var(--panel-shadow);
+      /* box-shadow: var(--panel-shadow); */
     }
 
     .top {
-      padding: clamp(0.7rem, 2vw, 1rem) clamp(0.8rem, 2.4vw, 1.2rem);
+      /* padding: clamp(0.7rem, 2vw, 1rem) clamp(0.8rem, 2.4vw, 1.2rem); */
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -878,6 +890,7 @@
 
           modeBtn.disabled = false;
           stopBtn.classList.remove("hidden");
+          startBtn.classList.add("hidden")
           sensitivityRange.disabled = false;
 
           hintText.textContent = "Live mic active. Switch modes or adjust sensitivity.";
@@ -952,6 +965,7 @@
         startBtn.classList.add("pulse");
         modeBtn.disabled = true;
         stopBtn.classList.add("hidden");
+        startBtn.classList.remove("hidden");
         sensitivityRange.disabled = true;
         hintText.textContent = "Visualizer stopped. Press Start to enable microphone again.";
         setStatus("Stopped");
@@ -964,7 +978,7 @@
       function toggleMode() {
         appState.mode = appState.mode === "bars" ? "radial" : "bars";
         const label = appState.mode === "bars" ? "Bars" : "Circle";
-        modeBtn.textContent = `Mode: ${label}`;
+        modeBtn.textContent = `${label}`;
         modePill.textContent = label;
         setStatus(`Switched to ${label} mode`);
         setTimeout(hideStatus, 650);
