@@ -38,5 +38,10 @@ Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'aut
 
 });
 
+Route::group(['middleware' => ['web', LocaleMiddleware::class]], function () {
+    Route::get('/eq', fn () => view('utility::em-visualizer'))->name('eq');
+});
+
 Route::get('/test-zkteco', [ZKTecoPushController::class, 'test'])->name('test-zkteco');
+
 

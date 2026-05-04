@@ -1,4 +1,4 @@
-@extends('me::master')
+@extends(auth()->check() ? 'me::master' : 'me::guestMaster')
 
 @section('title', 'EM Visualizer')
 @push('buttons')
@@ -6,7 +6,7 @@
       <div class="controls">
         <button id="startBtn" class="btn btn-encodex-active pulse">Start</button>
         <button id="stopBtn" class="btn btn-encodex-delete hidden">Stop</button>
-        <button id="modeBtn" disabled class="btn btn-encodex-edit">Bars</button>
+        <button id="modeBtn" disabled    class="btn btn-encodex-edit">Bars</button>
         <label class="sensitivity" for="sensitivityRange">
           <span>Sensitivity</span>
           <input id="sensitivityRange" type="range" min="0.6" max="2.8" step="0.1" value="1.5" disabled>
@@ -18,23 +18,6 @@
   <div class="bg-pulse" aria-hidden="true"></div>
 
   <main class="app" aria-label="Real-time microphone visualizer app">
-    {{-- <section class="top panel">
-      <div class="title-wrap">
-        <h1>Realtime Mic Visualizer</h1>
-        <p>Tap Start, allow mic access, and speak or play music to animate.</p>
-      </div>
-
-      <div class="controls">
-        <button id="startBtn" class="btn-primary pulse">Start</button>
-        <button id="modeBtn" disabled>Mode: Bars</button>
-        <button id="stopBtn" class="btn-danger hidden">Stop</button>
-        <label class="sensitivity" for="sensitivityRange">
-          <span>Sensitivity</span>
-          <input id="sensitivityRange" type="range" min="0.6" max="2.8" step="0.1" value="1.5" disabled>
-        </label>
-      </div>
-    </section> --}}
-
     <section class="viz-wrap panel">
       <button
         id="fullscreenBtn"
@@ -66,6 +49,22 @@
     </footer>
   </main>
 @endsection
+
+@if(!auth()->check())
+  @push('css')
+    <style>
+        .btn-encodex-active {
+            color: #059700;
+        }
+        .btn-encodex-edit {
+            color: rgb(2, 73, 179);
+        }
+        .btn-encodex-delete {
+            color: rgb(177, 2, 2);
+        }
+    </style>
+  @endpush
+@endif
 
 
 @push('css')
