@@ -1,6 +1,8 @@
 @extends(auth()->check() ? 'me::master' : 'me::guestMaster')
 
 @section('title', 'Calculator')
+@section('meta-title', 'Calculator - Calculate Discount and VAT on Price or Amount')
+@section('meta-description', 'A simple calculator to calculate discount and VAT on a given price or amount.')
 @push('buttons')
 
 @endpush
