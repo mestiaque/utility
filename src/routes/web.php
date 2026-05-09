@@ -43,5 +43,7 @@ Route::group(['middleware' => ['web', LocaleMiddleware::class]], function () {
 });
 
 Route::get('/test-zkteco', [ZKTecoPushController::class, 'test'])->name('test-zkteco');
+Route::get('/calculator', fn () => view('utility::calculator'))->name('calculator');
+
 
 
