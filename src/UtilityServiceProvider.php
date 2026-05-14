@@ -13,18 +13,14 @@ class UtilityServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/resources/views', 'utility');
         $this->loadTranslationsFrom(__DIR__.'/resources/lang', 'utility');
         $this->loadMigrationsFrom(__DIR__.'/database/migrations');
-        $this->publishes([
-            __DIR__.'/Config' => config_path('utility'),
-        ], 'utility-config');
-        $this->publishes([
-            __DIR__.'/public' => public_path('vendor/mestiaque/utility'),
-        ], 'utility-assets');
+        $this->publishes([ __DIR__.'/Config' => config_path('utility'), ], 'utility-config');
+        $this->publishes([ __DIR__ . '/public' => public_path('/'), ], 'utility-assets');
     }
 
     public function register()
     {
         $this->mergeConfigFrom(__DIR__.'/Config/config.php', 'utility');
-        
+
         if (file_exists(__DIR__ . '/Config/sidebar.php')) {
             $this->mergeConfigFrom(__DIR__ . '/Config/sidebar.php', 'sidebar');
         }
