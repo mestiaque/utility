@@ -8,7 +8,7 @@ use ME\Utility\Http\Controllers\BajarListController;
 use MshadyDev\ZKTeco\ZKTeco;
 
 
-Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'auth', LocaleMiddleware::class]], function () {
+Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'auth', LocaleMiddleware::class, 'activityLog']], function () {
     Route::get('/laravel-package-generator', [GeneratePackageController::class, 'index'])->name('package-generator');
     Route::post('/generate-laravel-package', [GeneratePackageController::class, 'generate'])->name('generate-package');
 
@@ -38,12 +38,12 @@ Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'aut
 
 });
 
-Route::group(['middleware' => ['web', LocaleMiddleware::class]], function () {
+Route::group(['middleware' => ['web', LocaleMiddleware::class, 'activityLog']], function () {
     Route::get('/eq', fn () => view('utility::em-visualizer'))->name('eq');
+    Route::get('/calculator', fn () => view('utility::calculator'))->name('calculator');
 });
 
 Route::get('/test-zkteco', [ZKTecoPushController::class, 'test'])->name('test-zkteco');
-Route::get('/calculator', fn () => view('utility::calculator'))->name('calculator');
 
 
 
