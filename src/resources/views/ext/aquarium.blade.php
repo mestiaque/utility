@@ -53,7 +53,7 @@ window.addEventListener("mousemove",e=>{
 
 // fish
 const fish=document.createElement("img");
-fish.src="/vendor/mestiaque/utility/fish.gif";
+fish.src="/fish.gif";
 fish.className="aquarium-fish";
 
 container.appendChild(fish);
