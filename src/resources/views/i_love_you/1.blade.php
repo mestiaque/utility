@@ -446,6 +446,18 @@
         const promiseBox = document.getElementById('promiseBox');
         const signature = document.getElementById('signature');
 
+        function splitGraphemes(text) {
+            if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+                const segmenter = new Intl.Segmenter('bn', { granularity: 'grapheme' });
+                return Array.from(segmenter.segment(text), (part) => part.segment);
+            }
+
+            // Fallback for browsers without Intl.Segmenter support.
+            return Array.from(text);
+        }
+
+        const typedLetterUnits = splitGraphemes(textToType);
+
         const cursor = document.createElement('span');
         cursor.className = 'typing-cursor';
         cursor.textContent = '|';
@@ -542,8 +554,8 @@
         let titleIndex = 0;
 
         function typeWriterLetter(index) {
-            if (index < textToType.length) {
-                cursor.insertAdjacentText('beforebegin', textToType.charAt(index));
+            if (index < typedLetterUnits.length) {
+                cursor.insertAdjacentText('beforebegin', typedLetterUnits[index]);
                 setTimeout(() => typeWriterLetter(index + 1), 46);
                 return;
             }
