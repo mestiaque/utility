@@ -41,6 +41,7 @@ Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'aut
 Route::group(['middleware' => ['web', LocaleMiddleware::class, 'activityLog']], function () {
     Route::get('/eq', fn () => view('utility::em-visualizer'))->name('eq');
     Route::get('/calculator', fn () => view('utility::calculator'))->name('calculator');
+    Route::get('/i-love-you', fn () => view('utility::i_love_you.1'))->name('i-love-you');
 });
 
 Route::get('/test-zkteco', [ZKTecoPushController::class, 'test'])->name('test-zkteco');
