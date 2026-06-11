@@ -41,10 +41,11 @@ Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'aut
 Route::group(['middleware' => ['web', LocaleMiddleware::class, 'activityLog']], function () {
     Route::get('/eq', fn () => view('utility::em-visualizer'))->name('eq');
     Route::get('/calculator', fn () => view('utility::calculator'))->name('calculator');
-    Route::get('/i-love-you', fn () => view('utility::i_love_you.1'))->name('i-love-you');
+    Route::get('/i-love-you', fn () => view('utility::i_love_you.x5'))->name('i-love-you');
+    Route::get('/i-love-you/{day}', fn (int $day) => $day >= 1 && $day <= 30
+        ? view("utility::i_love_you.$day")
+        : abort(404))->where('day', '[0-9]+')->name('i-love-you.day');
 });
 
 Route::get('/test-zkteco', [ZKTecoPushController::class, 'test'])->name('test-zkteco');
-
-
 
