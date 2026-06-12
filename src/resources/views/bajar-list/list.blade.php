@@ -1,19 +1,19 @@
 @extends('me::master')
 @section('title', $group->title)
 @push('buttons')
-    <button class="btn btn-sm btn-encodex-payment" data-bs-toggle="modal" data-bs-target="#printSettingsModal"><i class="fa fa-cog"></i></button>
+    <button type="button" class="btn btn-sm btn-encodex-payment" data-bs-toggle="modal" data-bs-target="#printSettingsModal"><i class="fa fa-cog"></i></button>
     <a href="{{ route('ut.bajar-list.groups.index') }}" class="btn btn-sm btn-encodex-list"><i class="fa fa-list"></i></a>
     <a href  = "javascript:void(0)" id = "printBtn" target = "_blank" class = "btn btn-sm btn-encodex-print">
         <i class = "fa fa-print"></i>
     </a>
-    <button class="btn btn-sm btn-encodex-create" data-bs-toggle="modal" data-bs-target="#createItemModal"><i class="fa fa-plus"></i></button>
+    <button type="button" class="btn btn-sm btn-encodex-create" data-bs-toggle="modal" data-bs-target="#createItemModal"><i class="fa fa-plus"></i></button>
 @endpush
 
 @section('content')
 
     <div class="card">
         <div class="card-body">
-            <form method="GET" class="filterForm" class="mb-3">
+            <form method="GET" id="filterForm" class="filterForm mb-3">
                 <div class="row mb-2">
                     <div class="col-md-3">
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search items..." class="form-control form-control-sm">
@@ -28,80 +28,10 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <button class="btn btn-encodex-search btn-sm me-1"><i class="fa fa-search"></i> Filter</button>
+                        <button type="submit" class="btn btn-encodex-search btn-sm me-1"><i class="fa fa-search"></i> Filter</button>
                         <a href="{{ route('ut.bajar-list.items.index', $group) }}" class="btn btn-encodex-clear btn-sm"> <i class="fa fa-eraser"></i> Reset</a>
                     </div>
                 </div>
-
-                    <!-- Modal -->
-                <div class="modal fade" id="printSettingsModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-                    <div class="modal-dialog glass-card">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Print Settings <input type="checkbox" value="1" class="col-toggle form-check-input select-all-settings"></h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <table class="table table-sm mb-0">
-                                    <tbody>
-                                        <tr>
-                                            <th>Item Name</th>
-                                            <td>
-                                                <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_item_name" @if(request('p_item_name')==1 ) checked @endif> Column </label>
-                                                <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_item_name_value" @if(request('p_item_name_value')==1) checked @endif> Value </label>
-                                            </td>
-                                        </tr>
-                                        <tr>    
-                                            <th>Brand</th>
-                                            <td>
-                                                <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_brand" @if(request('p_brand')==1) checked @endif> Column </label>
-                                                <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_brand_value" @if(request('p_brand_value')==1) checked @endif> Value </label>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>Source</th>
-                                            <td>
-                                                <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_source" @if(request('p_source')==1) checked @endif> Column </label>
-                                                <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_source_value" @if(request('p_source_value')==1) checked @endif> Value </label>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>Price</th>
-                                            <td>
-                                                <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_price" @if(request('p_price')==1) checked @endif> Column </label>
-                                                <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_price_value" @if(request('p_price_value')==1) checked @endif> Value </label>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>Description</th>
-                                            <td>
-                                                <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_description" @if(request('p_description')==1) checked @endif> Column </label>
-                                                <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_description_value" @if(request('p_description_value')==1) checked @endif> Value </label>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>Status</th>
-                                            <td>
-                                                <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_status" @if(request('p_status')==1) checked @endif> Column </label>
-                                                <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_status_value" @if(request('p_status_value')==1) checked @endif> Value </label>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>Extra</th>
-                                            <td>
-                                                <input type="number" name="extra_row" id="" class="form-control form-control-sm" placeholder="Add extra empty rows at the end of the table" value="{{ request('extra_row') }}">
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="modal-footer">
-                                <button class="btn btn-sm btn-encodex-save">Save Settings</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </form>
             <div class="table-responsive">
                 <table class="table table-encodex table-sm table-hover striped" id="mainTable">
@@ -148,10 +78,10 @@
                             </td>
                             <td>
                                 <div class="d-flex justify-content-center gap-1">
-                                    <button class="btn btn-sm btn-encodex-edit" data-bs-toggle="modal" data-bs-target="#editItemModal{{ $item->id }}"><i class="fa fa-edit"></i></button>
+                                    <button type="button" class="btn btn-sm btn-encodex-edit" data-bs-toggle="modal" data-bs-target="#editItemModal{{ $item->id }}"><i class="fa fa-edit"></i></button>
                                     <form action="{{ route('ut.bajar-list.items.destroy', [$group, $item]) }}" method="POST">
                                         @csrf @method('DELETE')
-                                        <button class="btn btn-sm btn-encodex-delete " onclick="return confirm('Delete this item?')"><i class="fa fa-trash"></i></button>
+                                        <button type="submit" class="btn btn-sm btn-encodex-delete " onclick="return confirm('Delete this item?')"><i class="fa fa-trash"></i></button>
                                     </form>
                                 </div>
                             </td>
@@ -168,6 +98,78 @@
                 </table>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Print Settings Modal -->
+    <div class="modal fade" id="printSettingsModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog glass-card">
+            <form method="GET" id="printSettingsForm" class="modal-content">
+                <input type="hidden" name="search" id="printSearchInput" value="{{ request('search') }}">
+                <input type="hidden" name="status" id="printStatusInput" value="{{ request('status') }}">
+                <input type="hidden" name="ids" id="printIdsInput" value="{{ request('ids') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Print Settings <input type="checkbox" value="1" class="col-toggle form-check-input select-all-settings"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            <tr>
+                                <th>Item Name</th>
+                                <td>
+                                    <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_item_name" @if(request('p_item_name')==1 ) checked @endif> Column </label>
+                                    <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_item_name_value" @if(request('p_item_name_value')==1) checked @endif> Value </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Brand</th>
+                                <td>
+                                    <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_brand" @if(request('p_brand')==1) checked @endif> Column </label>
+                                    <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_brand_value" @if(request('p_brand_value')==1) checked @endif> Value </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Source</th>
+                                <td>
+                                    <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_source" @if(request('p_source')==1) checked @endif> Column </label>
+                                    <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_source_value" @if(request('p_source_value')==1) checked @endif> Value </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Price</th>
+                                <td>
+                                    <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_price" @if(request('p_price')==1) checked @endif> Column </label>
+                                    <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_price_value" @if(request('p_price_value')==1) checked @endif> Value </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Description</th>
+                                <td>
+                                    <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_description" @if(request('p_description')==1) checked @endif> Column </label>
+                                    <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_description_value" @if(request('p_description_value')==1) checked @endif> Value </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Status</th>
+                                <td>
+                                    <label class="me-3"><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_status" @if(request('p_status')==1) checked @endif> Column </label>
+                                    <label><input type="checkbox" value="1" class="col-toggle form-check-input" name="p_status_value" @if(request('p_status_value')==1) checked @endif> Value </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Extra</th>
+                                <td>
+                                    <input type="number" name="extra_row" class="form-control form-control-sm" placeholder="Add extra empty rows at the end of the table" value="{{ request('extra_row') }}">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-sm btn-encodex-save">Save Settings</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -308,12 +310,21 @@ $(document).ready(function () {
         } else {
             input.val(checkedIds.join(','));
         }
+
+        updatePrintSettingsHidden();
+    }
+
+    function updatePrintSettingsHidden() {
+        $('#printSearchInput').val($('#filterForm input[name="search"]').val());
+        $('#printStatusInput').val($('#filterForm select[name="status"]').val());
+        $('#printIdsInput').val($('#idsInput').val());
     }
 
     $('#printBtn').on('click', function () {
+        updatePrintSettingsHidden();
 
         // form থেকে সব input collect
-        let query = $('.filterForm').serialize();
+        let query = $('#filterForm, #printSettingsForm').serialize();
 
         // print url
         let url = "{{ route('ut.bajar-list.items.print', $group) }}?" + query;
@@ -321,6 +332,9 @@ $(document).ready(function () {
         // open in new tab
         window.open(url, '_blank');
     });
+
+    $('#filterForm input[name="search"], #filterForm select[name="status"]').on('change input', updatePrintSettingsHidden);
+    $('#printSettingsForm').on('submit', updatePrintSettingsHidden);
 
     updateIds();
 });
