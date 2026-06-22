@@ -1,14 +1,22 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
-use Utility\Http\Controllers\UtilityController;
-use App\Http\Controllers\Api\ZKTecoPushController;
-
 use ME\Utility\Http\Controllers\BajarListController;
+use ME\Utility\Http\Controllers\DataReceiverApiController;
 
-Route::prefix('api/utility')->group(function() {
-    Route::get('/', [UtilityController::class, 'index']);
-});
-
-// API route for bajar-list item update
+// Bajar-list item update
 Route::put('api/bajar-list/items/{item}', [BajarListController::class, 'apiListUpdate']);
-Route::post('/iclock/cdata', [ZKTecoPushController::class, 'receiveData']);
+
+// ── Universal Data Receiver — public, no auth, every method ───────────────────
+Route::match(
+    ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    '/api/receive',
+    [DataReceiverApiController::class, 'receive']
+)->name('udr.api.receive');
+
+// ZKTeco attendance machine push endpoint (also captured by UDR)
+Route::match(
+    ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    '/iclock/cdata',
+    [DataReceiverApiController::class, 'receive']
+)->name('udr.iclock');

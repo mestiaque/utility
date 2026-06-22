@@ -49,6 +49,16 @@ return [
         'sl' => 14
     ],
 
+    [
+        'title'      => 'Data Receiver',
+        'icon'       => 'fas fa-satellite-dish',
+        'route'      => 'ut.data-receiver',
+        'for_active' => 'ut.data-receiver*',
+        'icon_color' => 'icc-5',
+        'permit'     => 'me.dashboard',
+        'sl'         => 15
+    ],
+
 ];
 
 

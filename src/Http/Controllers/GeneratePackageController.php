@@ -112,34 +112,37 @@ class GeneratePackageController extends Controller
         $content = "<?php
 namespace {$namespace};
 
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 
 class {$providerClass} extends ServiceProvider
 {
-    public function boot()
+    public function boot(): void
     {
         \$this->loadRoutesFrom(__DIR__ . '/routes/web.php');
         \$this->loadRoutesFrom(__DIR__ . '/routes/api.php');
         \$this->loadViewsFrom(__DIR__ . '/resources/views', '{$nameLower}');
-        \$this->loadTranslationsFrom(__DIR__.'/resources/lang', '{$nameLower}');
-        \$this->loadMigrationsFrom(__DIR__.'/database/migrations');
-        \$this->publishes([
-            __DIR__.'/Config' => config_path('{$nameLower}'),
-        ], '{$nameLower}-config');
+        \$this->loadTranslationsFrom(__DIR__ . '/resources/lang', '{$nameLower}');
+        \$this->loadMigrationsFrom(__DIR__ . '/database/migrations');
+        \$this->publishes([__DIR__ . '/public' => public_path('/')], '{$nameLower}-assets');
+
+        // Sidebar entries are a numeric array — must array_merge, not mergeConfigFrom
+        if (file_exists(\$sidebar = __DIR__ . '/Config/sidebar.php')) {
+            Config::set('sidebar', array_merge(
+                config('sidebar', []),
+                require \$sidebar
+            ));
+        }
     }
 
-    public function register()
+    public function register(): void
     {
         if (file_exists(__DIR__ . '/Config/config.php')) {
             \$this->mergeConfigFrom(__DIR__ . '/Config/config.php', '{$nameLower}');
         }
 
-        if (file_exists(__DIR__ . '/Config/sidebar.php')) {
-            \$this->mergeConfigFrom(__DIR__ . '/Config/sidebar.php', 'sidebar');
-        }
-
-        if (file_exists(__DIR__ . '/Config/permissions.php')) {
-            \$this->mergeConfigFrom(__DIR__ . '/Config/permissions.php', 'permissions');
+        if (file_exists(__DIR__ . '/Config/permission.php')) {
+            \$this->mergeConfigFrom(__DIR__ . '/Config/permission.php', 'permissions');
         }
     }
 }";
@@ -210,14 +213,19 @@ return new class extends Migration {
 use Illuminate\\Support\\Facades\\Route;
 use ME\\{$nameStudly}\\Http\\Controllers\\{$nameStudly}Controller;
 
-Route::get('/{$nameLower}', [{$nameStudly}Controller::class, 'index']);";
+Route::group(['prefix' => '{$nameLower}', 'as' => '{$nameLower}.', 'middleware' => ['web', 'auth']], function () {
+    Route::get('/', [{$nameStudly}Controller::class, 'index'])->name('index');
+});";
 
         $api = "<?php
 use Illuminate\\Support\\Facades\\Route;
 use ME\\{$nameStudly}\\Http\\Controllers\\{$nameStudly}Controller;
 
-Route::prefix('api/{$nameLower}')->group(function() {
-    Route::get('/', [{$nameStudly}Controller::class, 'index']);
+Route::prefix('api/{$nameLower}')->name('{$nameLower}.api.')->group(function () {
+    Route::get('/',    [{$nameStudly}Controller::class, 'index'])->name('index');
+    Route::post('/',   [{$nameStudly}Controller::class, 'store'])->name('store');
+    Route::put('/{id}',[{$nameStudly}Controller::class, 'update'])->name('update');
+    Route::delete('/{id}',[{$nameStudly}Controller::class, 'destroy'])->name('destroy');
 });";
 
         File::put($basePath."/src/routes/web.php", $web);
@@ -235,21 +243,37 @@ return [
 
     private function makeConfig($nameLower, $basePath)
     {
-        $content = "<?php
+        // Package config
+        $config = "<?php
 return [
-    'key' => 'value',
+    'name' => '{$nameLower}',
 ];";
-        File::put($basePath."/src/Config/config.php", $content);
-        $content = "<?php
+        File::put($basePath."/src/Config/config.php", $config);
+
+        // Permissions
+        $permissions = "<?php
 return [
-    'key' => 'value',
+    '{$nameLower}.view'   => '{$nameLower} View',
+    '{$nameLower}.create' => '{$nameLower} Create',
+    '{$nameLower}.edit'   => '{$nameLower} Edit',
+    '{$nameLower}.delete' => '{$nameLower} Delete',
 ];";
-        File::put($basePath."/src/Config/permission.php", $content);
-        $content = "<?php
+        File::put($basePath."/src/Config/permission.php", $permissions);
+
+        // Sidebar — follows the utility package sidebar array format
+        $sidebar = "<?php
 return [
-    'key' => 'value',
+    [
+        'title'      => '" . Str::title(str_replace('_', ' ', $nameLower)) . "',
+        'icon'       => 'fas fa-cube',
+        'route'      => '{$nameLower}.index',
+        'for_active' => '{$nameLower}.*',
+        'icon_color' => 'icc-1',
+        'permit'     => '{$nameLower}.view',
+        'sl'         => 50,
+    ],
 ];";
-        File::put($basePath."/src/Config/sidebar.php", $content);
+        File::put($basePath."/src/Config/sidebar.php", $sidebar);
     }
 
     private function makeReadme($nameStudly, $nameStudlyLower, $basePath)

@@ -312,6 +312,4 @@ class {$name}Controller extends Controller
     }
 
 
-
-
 }

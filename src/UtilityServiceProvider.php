@@ -2,28 +2,33 @@
 
 namespace ME\Utility;
 
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 
 class UtilityServiceProvider extends ServiceProvider
 {
-    public function boot()
+    public function boot(): void
     {
-        $this->loadRoutesFrom(__DIR__.'/routes/web.php');
-        $this->loadRoutesFrom(__DIR__.'/routes/api.php');
-        $this->loadViewsFrom(__DIR__.'/resources/views', 'utility');
-        $this->loadTranslationsFrom(__DIR__.'/resources/lang', 'utility');
-        $this->loadMigrationsFrom(__DIR__.'/database/migrations');
-        $this->publishes([ __DIR__.'/Config' => config_path('utility'), ], 'utility-config');
-        $this->publishes([ __DIR__ . '/public' => public_path('/'), ], 'utility-assets');
+        $this->loadRoutesFrom(__DIR__ . '/routes/web.php');
+        $this->loadRoutesFrom(__DIR__ . '/routes/api.php');
+        $this->loadViewsFrom(__DIR__ . '/resources/views', 'utility');
+        $this->loadTranslationsFrom(__DIR__ . '/resources/lang', 'utility');
+        $this->loadMigrationsFrom(__DIR__ . '/database/migrations');
+        $this->publishes([__DIR__ . '/Config' => config_path('utility')], 'utility-config');
+        $this->publishes([__DIR__ . '/public' => public_path('/')], 'utility-assets');
+
+        // Sidebar is a numeric array — array_merge ensures all packages append their items
+        if (file_exists($sidebarPath = __DIR__ . '/Config/sidebar.php')) {
+            Config::set('sidebar', array_merge(
+                config('sidebar', []),
+                require $sidebarPath
+            ));
+        }
     }
 
-    public function register()
+    public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/Config/config.php', 'utility');
-
-        if (file_exists(__DIR__ . '/Config/sidebar.php')) {
-            $this->mergeConfigFrom(__DIR__ . '/Config/sidebar.php', 'sidebar');
-        }
+        $this->mergeConfigFrom(__DIR__ . '/Config/config.php', 'utility');
 
         if (file_exists(__DIR__ . '/Config/permissions.php')) {
             $this->mergeConfigFrom(__DIR__ . '/Config/permissions.php', 'permissions');
