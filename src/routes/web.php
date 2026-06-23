@@ -80,7 +80,7 @@ Route::group(['middleware' => ['web', LocaleMiddleware::class, 'activityLog']], 
     )->where('day', '[0-9]+')->name('i-love-you.day');
 
     // Public image access — no login required, shareable URL
-    Route::get('/public-images/{uuid}', [ImageShareController::class, 'show'])
+    Route::get('/open-images/{uuid}', [ImageShareController::class, 'show'])
         ->name('ut.image-share.public');
 });
 
