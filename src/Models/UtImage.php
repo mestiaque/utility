@@ -38,7 +38,7 @@ class UtImage extends Model
 
     public function getPublicUrlAttribute(): string
     {
-        return url("/public-images/{$this->uuid}");
+        return url("/open-images/{$this->uuid}");
     }
 
     public function getFormattedSizeAttribute(): string
