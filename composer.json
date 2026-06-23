@@ -20,6 +20,9 @@
     "require-dev": {
         "laravel/framework": "^11.0|^12.0"
     },
+    "suggest": {
+        "intervention/image": "Required for image resize and compression on upload (^4.0)"
+    },
     "autoload": {
         "psr-4": {
             "ME\\Utility\\": "src/"

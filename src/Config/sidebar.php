@@ -59,6 +59,16 @@ return [
         'sl'         => 15
     ],
 
+    [
+        'title'      => 'Image Share',
+        'icon'       => 'fas fa-images',
+        'route'      => 'ut.image-share.index',
+        'for_active' => 'ut.image-share.*',
+        'icon_color' => 'icc-7',
+        'permit'     => 'me.dashboard',
+        'sl'         => 16
+    ],
+
 ];
 
 

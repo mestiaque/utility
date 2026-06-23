@@ -2,9 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use ME\Http\Middleware\LocaleMiddleware;
+use ME\Utility\Http\Controllers\AdmsController;
 use ME\Utility\Http\Controllers\DataReceiverController;
 use ME\Utility\Http\Controllers\GeneratePackageController;
 use ME\Utility\Http\Controllers\BajarListController;
+use ME\Utility\Http\Controllers\ImageShareController;
 use ME\Utility\Http\Controllers\UtilityController;
 
 Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'auth', LocaleMiddleware::class, 'activityLog']], function () {
@@ -36,6 +38,23 @@ Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'aut
         Route::delete('/{group}/items/{item}',  [BajarListController::class, 'listDestroy'])->name('bajar-list.items.destroy');
     });
 
+    // ── ADMS Settings ─────────────────────────────────────────────────────────
+    Route::prefix('adms')->group(function () {
+        Route::get('/settings',           [AdmsController::class, 'settings'])->name('adms.settings');
+        Route::post('/settings/config',   [AdmsController::class, 'saveConfig'])->name('adms.config.save');
+        Route::post('/settings/schedule', [AdmsController::class, 'saveSchedule'])->name('adms.schedule.save');
+        Route::get('/test-connection',    [AdmsController::class, 'testConnection'])->name('adms.test-connection');
+    });
+
+    // ── Image Share ───────────────────────────────────────────────────────────
+    Route::prefix('image-share')->group(function () {
+        Route::get('/',            [ImageShareController::class, 'index'])->name('image-share.index');
+        Route::post('/upload',     [ImageShareController::class, 'store'])
+            ->middleware('throttle:10,1')
+            ->name('image-share.store');
+        Route::delete('/{uuid}',   [ImageShareController::class, 'destroy'])->name('image-share.destroy');
+    });
+
     // ── Data Receiver (admin panel) ───────────────────────────────────────────
     Route::prefix('data-receiver')->group(function () {
         Route::get('/',                             [DataReceiverController::class, 'index'])->name('data-receiver');
@@ -59,5 +78,9 @@ Route::group(['middleware' => ['web', LocaleMiddleware::class, 'activityLog']], 
         ? view("utility::i_love_you.$day")
         : abort(404)
     )->where('day', '[0-9]+')->name('i-love-you.day');
+
+    // Public image access — no login required, shareable URL
+    Route::get('/public-images/{uuid}', [ImageShareController::class, 'show'])
+        ->name('ut.image-share.public');
 });
 
