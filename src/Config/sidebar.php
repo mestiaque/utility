@@ -60,6 +60,16 @@ return [
     ],
 
     [
+        'title'      => 'Invoice Generator',
+        'icon'       => 'fas fa-file-invoice',
+        'route'      => 'ut.invoice-generator.index',
+        'for_active' => 'ut.invoice-generator.*',
+        'icon_color' => 'icc-4',
+        'permit'     => 'me.dashboard',
+        'sl'         => 17
+    ],
+
+    [
         'title'      => 'Image Share',
         'icon'       => 'fas fa-images',
         'route'      => 'ut.image-share.index',

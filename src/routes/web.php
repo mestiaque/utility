@@ -7,6 +7,7 @@ use ME\Utility\Http\Controllers\DataReceiverController;
 use ME\Utility\Http\Controllers\GeneratePackageController;
 use ME\Utility\Http\Controllers\BajarListController;
 use ME\Utility\Http\Controllers\ImageShareController;
+use ME\Utility\Http\Controllers\InvoiceGeneratorController;
 use ME\Utility\Http\Controllers\UtilityController;
 
 Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'auth', LocaleMiddleware::class, 'activityLog']], function () {
@@ -24,6 +25,13 @@ Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'aut
     // ── Misc tools ────────────────────────────────────────────────────────────
     Route::get('/wedding-card', [UtilityController::class, 'weddingCard'])->name('wedding-card');
     Route::get('/em-visualizer', [UtilityController::class, 'emVisualizer'])->name('em-visualizer');
+
+    // ── Invoice Generator ─────────────────────────────────────────────────────
+    Route::get('/invoice-generator', [InvoiceGeneratorController::class, 'index'])->name('invoice-generator.index');
+    Route::post('/invoice-generator/generate', [InvoiceGeneratorController::class, 'generate'])->name('invoice-generator.generate');
+    Route::get('/invoice-generator/history', [InvoiceGeneratorController::class, 'history'])->name('invoice-generator.history');
+    Route::get('/invoice-generator/{invoiceNumber}/print', [InvoiceGeneratorController::class, 'print'])->name('invoice-generator.print');
+    Route::delete('/invoice-generator/{invoiceNumber}', [InvoiceGeneratorController::class, 'destroy'])->name('invoice-generator.destroy');
 
     // ── Bajar List ────────────────────────────────────────────────────────────
     Route::prefix('bajar-list')->group(function () {
