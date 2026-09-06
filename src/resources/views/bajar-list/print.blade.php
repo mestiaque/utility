@@ -70,9 +70,9 @@
                 </td>
             @endif
             @if(array_key_exists('p_description', $req) && $req['p_description'])
-                <td>
+                <td class="summernote-content">
                     @if(array_key_exists('p_description_value', $req) && $req['p_description_value'])
-                        {{ $item->description }}
+                        {!! $item->description !!}
                     @endif
                 </td>
             @endif
@@ -169,6 +169,11 @@
     table td, table th {
         font-size: 10px !important;
         padding: 0.25rem !important;
+    }
+    table td img {
+        max-width: 60px;
+        max-height: 45px;
+        object-fit: cover;
     }
 </style>
 @endpush

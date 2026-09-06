@@ -57,7 +57,7 @@
                             <td class="col-brand" ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'brand')">{{ $item->brand }}</td>
                             <td class="col-source" ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'source')">{{ $item->source }}</td>
                             <td class="col-price text-end" ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'price')">{{ toBanglaNumber($item->price, 2) }}</td>
-                            <td class="col-description" ondblclick="makeEditable(this, '{{ route('ut.bajar-list.items.update', [$group, $item]) }}', 'description')">{{ $item->description }}</td>
+                            <td class="col-description summernote-content text-start">{!! $item->description !!}</td>
                             <td>
                                 @if($item->status === 'pending')
                                     <form method="POST" action="{{ route('ut.bajar-list.items.update', [$group, $item]) }}" style="display:inline;">
@@ -202,7 +202,7 @@
                         </div>
                         <div class="mb-3">
                             <label>Description</label>
-                            <textarea name="description" class="form-control">{{ $item->description }}</textarea>
+                            <textarea name="description" class="form-control summernote">{{ $item->description }}</textarea>
                         </div>
                         <div class="mb-3">
                             <label>Status</label>
@@ -248,7 +248,7 @@
                     </div>
                     <div class="mb-3">
                         <label>Description</label>
-                        <textarea name="description" class="form-control"></textarea>
+                        <textarea name="description" class="form-control summernote"></textarea>
                     </div>
                     <div class="mb-3">
                         <label>Status</label>
@@ -267,6 +267,16 @@
     </div>
 
 @endsection
+
+@push('css')
+<style>
+    .col-description img {
+        max-width: 80px;
+        max-height: 60px;
+        object-fit: cover;
+    }
+</style>
+@endpush
 
 @push('js')
 <script>

@@ -11,15 +11,15 @@ return [
         'sl' => 10
     ],
 
-    [
-        'title' => 'Feature Generator',
-        'icon'  => 'fas fa-cogs',
-        'route' => 'ut.laravelFeatureGenerate',
-        'for_active' => 'ut.laravelFeatureGenerate',
-        'icon_color' => 'icc-2',
-        'permit' => 'me.dashboard',
-        'sl' => 11
-    ],
+    // [
+    //     'title' => 'Feature Generator',
+    //     'icon'  => 'fas fa-cogs',
+    //     'route' => 'ut.laravelFeatureGenerate',
+    //     'for_active' => 'ut.laravelFeatureGenerate',
+    //     'icon_color' => 'icc-2',
+    //     'permit' => 'me.dashboard',
+    //     'sl' => 11
+    // ],
 
     // [
     //     'title' => 'Wedding Card Generator',
@@ -30,15 +30,15 @@ return [
     //     'permit' => 'me.dashboard',
     //     'sl' => 12
     // ],
-    [
-        'title' => 'EM Visualizer',
-        'icon'  => 'fas fa-music',
-        'route' => 'ut.em-visualizer',
-        'for_active' => 'ut.em-visualizer',
-        'icon_color' => 'icc-8',
-        // 'permit' => 'me.dashboard',
-        'sl' => 13
-    ],
+    // [
+    //     'title' => 'EM Visualizer',
+    //     'icon'  => 'fas fa-music',
+    //     'route' => 'ut.em-visualizer',
+    //     'for_active' => 'ut.em-visualizer',
+    //     'icon_color' => 'icc-8',
+    //     // 'permit' => 'me.dashboard',
+    //     'sl' => 13
+    // ],
     [
         'title' => 'Bajar List',
         'icon'  => 'fas fa-list',
