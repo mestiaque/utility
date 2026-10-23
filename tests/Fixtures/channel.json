@@ -1,0 +1,15 @@
+{
+    "_type": "playlist",
+    "id": "@example",
+    "title": "Example Channel - Videos",
+    "uploader": "Example Channel",
+    "extractor_key": "YoutubeTab",
+    "entries": [
+        {"_type": "url", "ie_key": "Youtube", "id": "aaa", "url": "https://www.youtube.com/watch?v=aaa", "title": "First video", "duration": 125,
+         "thumbnails": [{"url": "https://i.ytimg.com/vi/aaa/1.jpg"}, {"url": "https://i.ytimg.com/vi/aaa/2.jpg"}, {"url": "https://i.ytimg.com/vi/aaa/3.jpg"}]},
+        {"_type": "url", "ie_key": "Youtube", "id": "bbb", "url": "https://www.youtube.com/watch?v=bbb", "title": "Second video", "duration": 3725},
+        {"_type": "url", "ie_key": "Youtube", "id": "ccc", "url": "http://localhost/evil", "title": "Blocked by SSRF guard"},
+        {"_type": "playlist", "id": "shorts", "title": "Example Channel - Shorts", "webpage_url": "https://www.youtube.com/@example/shorts", "entries": []},
+        {"_type": "url", "ie_key": "Youtube", "id": "ddd", "title": "No URL at all"}
+    ]
+}

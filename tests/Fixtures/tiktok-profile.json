@@ -1,0 +1,73 @@
+{
+  "_type": "playlist",
+  "id": "example",
+  "title": "example",
+  "extractor_key": "TikTokUser",
+  "entries": [
+    {
+      "_type": "url",
+      "ie_key": "TikTok",
+      "id": "7530927978641935624",
+      "url": "https://www.tiktok.com/@example/video/7530927978641935624",
+      "title": "",
+      "duration": 13,
+      "thumbnails": [
+        {
+          "id": "cover",
+          "url": "https://p16-sign.tiktokcdn.com/obj/cover.jpeg"
+        },
+        {
+          "id": "dynamicCover",
+          "url": "https://p16-sign.tiktokcdn.com/obj/dynamicCover.jpeg"
+        },
+        {
+          "id": "originCover",
+          "url": "https://p16-sign.tiktokcdn.com/obj/originCover.jpeg"
+        }
+      ]
+    },
+    {
+      "_type": "url",
+      "ie_key": "TikTok",
+      "id": "7531024522863037714",
+      "url": "https://www.tiktok.com/@example/video/7531024522863037714",
+      "title": "",
+      "duration": null,
+      "thumbnails": [
+        {
+          "id": "cover",
+          "url": "https://p16-sign.tiktokcdn.com/obj/cover.jpeg"
+        },
+        {
+          "id": "originCover",
+          "url": "https://p16-sign.tiktokcdn.com/obj/originCover.jpeg"
+        }
+      ]
+    },
+    {
+      "_type": "url",
+      "ie_key": "TikTok",
+      "id": "7687966673072049409",
+      "url": "https://www.tiktok.com/@example/video/7687966673072049409",
+      "title": "",
+      "duration": 23,
+      "thumbnails": [
+        {
+          "id": "cover",
+          "url": "https://p16-sign.tiktokcdn.com/obj/cover.jpeg"
+        },
+        {
+          "id": "originCover",
+          "url": "https://p16-sign.tiktokcdn.com/obj/originCover.jpeg"
+        }
+      ]
+    },
+    {
+      "_type": "url",
+      "ie_key": "Generic",
+      "id": "p",
+      "url": "https://example.org/photos/12",
+      "title": "Album"
+    }
+  ]
+}

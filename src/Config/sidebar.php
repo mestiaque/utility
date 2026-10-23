@@ -79,6 +79,16 @@ return [
         'sl'         => 16
     ],
 
+    [
+        'title'      => 'Media Downloader',
+        'icon'       => 'fas fa-cloud-download-alt',
+        'route'      => 'ut.media-downloader.index',
+        'for_active' => 'ut.media-downloader.*',
+        'icon_color' => 'icc-6',
+        'permit'     => 'me.dashboard',
+        'sl'         => 18
+    ],
+
 ];
 
 

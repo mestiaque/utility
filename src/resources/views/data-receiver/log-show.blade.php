@@ -10,7 +10,7 @@
         <i class="fas fa-copy me-1"></i> Copy JSON
     </button>
     <form method="POST" action="{{ route('ut.data-receiver.log.destroy', $log->uuid) }}"
-          class="d-inline ms-1" onsubmit="return confirm('Delete this log and all its files?')">
+          class="d-inline ms-1" onsubmit="if (!confirm('Delete this log and all its files?')) { event.stopPropagation(); return false; }">
         @csrf @method('DELETE')
         <button type="submit" class="btn btn-sm btn-outline-danger">
             <i class="fas fa-trash me-1"></i> Delete
@@ -24,17 +24,17 @@
 <div class="mb-3">
     <div class="d-flex align-items-center gap-2 flex-wrap">
         <span class="badge fs-6
-            @if($log->method === 'GET') bg-primary
-            @elseif($log->method === 'POST') bg-success
-            @elseif($log->method === 'PUT') bg-warning text-dark
-            @elseif($log->method === 'PATCH') bg-info text-dark
-            @elseif($log->method === 'DELETE') bg-danger
-            @else bg-secondary
+            @if($log->method === 'GET') bg-primary-subtle text-primary
+            @elseif($log->method === 'POST') bg-success-subtle text-success
+            @elseif($log->method === 'PUT') bg-warning-subtle text-warning
+            @elseif($log->method === 'PATCH') bg-info-subtle text-info
+            @elseif($log->method === 'DELETE') bg-danger-subtle text-danger
+            @else bg-secondary-subtle text-secondary
             @endif">{{ $log->method }}</span>
         <code class="fs-6">{{ $log->path }}</code>
-        @if($log->is_json)   <span class="badge bg-success">JSON</span>   @endif
-        @if($log->is_xml)    <span class="badge bg-warning text-dark">XML</span> @endif
-        @if($log->is_binary) <span class="badge bg-info text-dark">Binary</span> @endif
+        @if($log->is_json)   <span class="badge bg-success-subtle text-success">JSON</span>   @endif
+        @if($log->is_xml)    <span class="badge bg-warning-subtle text-warning">XML</span> @endif
+        @if($log->is_binary) <span class="badge bg-info-subtle text-info">Binary</span> @endif
     </div>
     <div class="small text-muted mt-1 d-flex gap-3 flex-wrap">
         <span><i class="fas fa-clock me-1"></i>{{ $log->received_at?->format('Y-m-d H:i:s') }}</span>
@@ -57,7 +57,7 @@
     @if($log->has_files)
     <li class="nav-item">
         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-files">
-            Files <span class="badge bg-info text-dark ms-1">{{ $log->uploadedFiles->count() }}</span>
+            Files <span class="badge bg-info-subtle text-info ms-1">{{ $log->uploadedFiles->count() }}</span>
         </button>
     </li>
     @endif
@@ -96,9 +96,9 @@
                         <tr><th class="ps-3">Has Files</th><td>{{ $log->has_files ? 'Yes ('.$log->uploadedFiles->count().')' : 'No' }}</td></tr>
                         <tr><th class="ps-3">Flags</th>
                             <td>
-                                @if($log->is_json)   <span class="badge bg-success me-1">JSON</span>   @endif
-                                @if($log->is_xml)    <span class="badge bg-warning text-dark me-1">XML</span> @endif
-                                @if($log->is_binary) <span class="badge bg-info text-dark me-1">Binary</span> @endif
+                                @if($log->is_json)   <span class="badge bg-success-subtle text-success me-1">JSON</span>   @endif
+                                @if($log->is_xml)    <span class="badge bg-warning-subtle text-warning me-1">XML</span> @endif
+                                @if($log->is_binary) <span class="badge bg-info-subtle text-info me-1">Binary</span> @endif
                                 @if(!$log->is_json && !$log->is_xml && !$log->is_binary) <span class="text-muted small">—</span> @endif
                             </td>
                         </tr>
@@ -213,8 +213,8 @@
                             {{ $file->original_name }}
                         </p>
                         <div class="d-flex gap-1 mb-2">
-                            <span class="badge bg-secondary" style="font-size:.65rem;">{{ strtoupper($file->extension) }}</span>
-                            <span class="badge bg-light text-dark border" style="font-size:.65rem;">{{ $file->formatted_size }}</span>
+                            <span class="badge bg-secondary-subtle text-secondary" style="font-size:.65rem;">{{ strtoupper($file->extension) }}</span>
+                            <span class="badge bg-light-subtle text-light border" style="font-size:.65rem;">{{ $file->formatted_size }}</span>
                         </div>
                         <a href="{{ route('ut.data-receiver.file.download', $file->uuid) }}"
                            class="btn btn-sm btn-outline-success w-100">

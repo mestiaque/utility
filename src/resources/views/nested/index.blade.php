@@ -48,6 +48,7 @@
 @endsection
 
 @push('scripts')
+@include('utility::partials.toast')
 <script>
 document.getElementById('nestedForm').addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -84,9 +85,9 @@ document.getElementById('nestedForm').addEventListener('submit', async function 
         window.URL.revokeObjectURL(url);
         a.remove();
 
-        info.innerHTML += "<br><strong class='text-success'>ZIP successfully downloaded!</strong>";
+        utNotify('success', 'ZIP successfully downloaded!');
     } catch (err) {
-        info.innerHTML += "<br><span class='text-danger'>Error: " + err.message + "</span>";
+        utNotify('error', 'Error: ' + err.message);
     } finally {
         btn.disabled = false;
     }

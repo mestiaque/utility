@@ -6,7 +6,7 @@
     <a href="{{ route('ut.data-receiver.logs') }}" class="btn btn-sm btn-encodex-list">
         <i class="fas fa-list-alt me-1"></i> Logs
         @if($stats['total'] > 0)
-            <span class="badge bg-white text-dark ms-1">{{ number_format($stats['total']) }}</span>
+            <span class="badge bg-secondary-subtle text-secondary ms-1">{{ number_format($stats['total']) }}</span>
         @endif
     </a>
     <a href="{{ route('ut.data-receiver.files') }}" class="btn btn-sm btn-outline-info ms-1">
@@ -78,7 +78,7 @@
 <div class="card glass-card p-4 mb-4">
     <div class="fw-semibold mb-3">
         <i class="fas fa-satellite-dish text-primary me-2"></i>Public API Endpoint
-        <span class="badge bg-success ms-2">Active</span>
+        <span class="badge bg-success-subtle text-success ms-2">Active</span>
     </div>
 
     <div class="input-group mb-3" style="max-width:600px;">
@@ -93,12 +93,12 @@
     <div class="d-flex gap-2 flex-wrap mb-4">
         @foreach(['GET','POST','PUT','PATCH','DELETE','OPTIONS'] as $m)
             <span class="badge rounded-pill px-3 py-2
-                @if($m==='GET') bg-primary
-                @elseif($m==='POST') bg-success
-                @elseif($m==='PUT') bg-warning text-dark
-                @elseif($m==='PATCH') bg-info text-dark
-                @elseif($m==='DELETE') bg-danger
-                @else bg-secondary
+                @if($m==='GET') bg-primary-subtle text-primary
+                @elseif($m==='POST') bg-success-subtle text-success
+                @elseif($m==='PUT') bg-warning-subtle text-warning
+                @elseif($m==='PATCH') bg-info-subtle text-info
+                @elseif($m==='DELETE') bg-danger-subtle text-danger
+                @else bg-secondary-subtle text-secondary
                 @endif">{{ $m }}</span>
         @endforeach
     </div>
@@ -109,7 +109,7 @@
             <li class="nav-item">
                 <button class="nav-link {{ $i === 0 ? 'active' : '' }}"
                         data-bs-toggle="tab" data-bs-target="#curl-{{ $i }}">
-                    <span class="badge me-1 {{ $ex['method'] === 'GET' ? 'bg-primary' : 'bg-success' }}">
+                    <span class="badge me-1 {{ $ex['method'] === 'GET' ? 'bg-primary-subtle text-primary' : 'bg-success-subtle text-success' }}">
                         {{ $ex['method'] }}
                     </span>{{ $ex['label'] }}
                 </button>

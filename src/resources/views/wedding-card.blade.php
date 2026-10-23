@@ -838,6 +838,7 @@
         </div>
     </div>
 
+    @include('utility::partials.toast')
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script>
         // Load saved values from localStorage on page load
@@ -927,6 +928,7 @@
                         link.click();
                         
                         btn.textContent = '✅ ডাউনলোড সম্পন্ন!';
+                        utNotify('success', 'কার্ড ডাউনলোড সম্পন্ন!');
                         setTimeout(() => {
                             btn.textContent = '📥 কার্ড ডাউনলোড করুন';
                             btn.disabled = false;
@@ -937,6 +939,7 @@
                         
                         console.error('Error:', error);
                         btn.textContent = '❌ ত্রুটি হয়েছে: ' + error.message;
+                        utNotify('error', 'ত্রুটি হয়েছে: ' + error.message);
                         setTimeout(() => {
                             btn.textContent = '📥 কার্ড ডাউনলোড করুন';
                             btn.disabled = false;

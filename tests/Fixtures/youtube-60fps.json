@@ -1,0 +1,14 @@
+{
+    "title": "60fps demo",
+    "duration": 100,
+    "extractor_key": "Youtube",
+    "formats": [
+        {"format_id": "140", "ext": "m4a", "vcodec": "none", "acodec": "mp4a.40.2", "abr": 129, "filesize": 1600000},
+        {"format_id": "315", "ext": "webm", "width": 3840, "height": 2160, "fps": 60, "vcodec": "vp9", "acodec": "none", "tbr": 25000},
+        {"format_id": "313", "ext": "webm", "width": 3840, "height": 2160, "fps": 30, "vcodec": "vp9", "acodec": "none", "tbr": 16000},
+        {"format_id": "308", "ext": "webm", "width": 2560, "height": 1440, "fps": 60, "vcodec": "vp9", "acodec": "none", "tbr": 13000},
+        {"format_id": "299", "ext": "mp4", "width": 1920, "height": 1080, "fps": 60, "vcodec": "avc1.64002a", "acodec": "none", "tbr": 6000},
+        {"format_id": "137", "ext": "mp4", "width": 1920, "height": 1080, "fps": 30, "vcodec": "avc1.640028", "acodec": "none", "tbr": 4000},
+        {"format_id": "136", "ext": "mp4", "width": 1280, "height": 720, "fps": 30, "vcodec": "avc1.4d401f", "acodec": "none", "tbr": 1300}
+    ]
+}

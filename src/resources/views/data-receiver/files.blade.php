@@ -66,8 +66,8 @@
                     {{ $file->original_name }}
                 </p>
                 <div class="d-flex gap-1 mb-1 flex-wrap">
-                    <span class="badge bg-secondary" style="font-size:.65rem;">{{ strtoupper($file->extension) }}</span>
-                    <span class="badge bg-light text-dark border" style="font-size:.65rem;">{{ $file->formatted_size }}</span>
+                    <span class="badge bg-secondary-subtle text-secondary" style="font-size:.65rem;">{{ strtoupper($file->extension) }}</span>
+                    <span class="badge bg-light-subtle text-light border" style="font-size:.65rem;">{{ $file->formatted_size }}</span>
                 </div>
                 <div class="text-muted" style="font-size:.7rem;">{{ $file->created_at?->diffForHumans() }}</div>
 
@@ -83,7 +83,7 @@
                         <i class="fas fa-download"></i>
                     </a>
                     <form method="POST" action="{{ route('ut.data-receiver.file.destroy', $file->uuid) }}"
-                          onsubmit="return confirm('Delete this file?')">
+                          onsubmit="if (!confirm('Delete this file?')) { event.stopPropagation(); return false; }">
                         @csrf @method('DELETE')
                         <button class="btn btn-sm btn-outline-danger" title="Delete">
                             <i class="fas fa-trash"></i>

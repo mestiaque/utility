@@ -10,13 +10,7 @@
 
 @section('content')
 
-{{-- ── Flash --}}
-@if(session('img_success'))
-    <div class="alert alert-success alert-dismissible fade show py-2 mb-3" role="alert">
-        <i class="fas fa-check-circle me-1"></i>{{ session('img_success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
+{{-- Success / validation messages are shown as toasts by the me::master layout --}}
 
 {{-- ── Stats row --}}
 <div class="row g-3 mb-4">
@@ -92,7 +86,7 @@
                                 <form
                                     method="POST"
                                     action="{{ route('ut.image-share.destroy', $image->uuid) }}"
-                                    onsubmit="return confirm('Delete this image? This cannot be undone.')"
+                                    onsubmit="if (!confirm('Delete this image? This cannot be undone.')) { event.stopPropagation(); return false; }"
                                 >
                                     @csrf
                                     @method('DELETE')
@@ -132,14 +126,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-
-                @if($errors->any())
-                    <div class="alert alert-danger py-2 mb-3">
-                        @foreach($errors->all() as $error)
-                            <div><i class="fas fa-exclamation-circle me-1"></i>{{ $error }}</div>
-                        @endforeach
-                    </div>
-                @endif
 
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Choose Image</label>

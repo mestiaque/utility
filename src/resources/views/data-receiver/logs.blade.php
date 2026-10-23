@@ -87,12 +87,12 @@
                 <tr>
                     <td>
                         <span class="badge
-                            @if($log->method === 'GET') bg-primary
-                            @elseif($log->method === 'POST') bg-success
-                            @elseif($log->method === 'PUT') bg-warning text-dark
-                            @elseif($log->method === 'PATCH') bg-info text-dark
-                            @elseif($log->method === 'DELETE') bg-danger
-                            @else bg-secondary
+                            @if($log->method === 'GET') bg-primary-subtle text-primary
+                            @elseif($log->method === 'POST') bg-success-subtle text-success
+                            @elseif($log->method === 'PUT') bg-warning-subtle text-warning
+                            @elseif($log->method === 'PATCH') bg-info-subtle text-info
+                            @elseif($log->method === 'DELETE') bg-danger-subtle text-danger
+                            @else bg-secondary-subtle text-secondary
                             @endif">{{ $log->method }}</span>
                     </td>
                     <td>
@@ -101,7 +101,7 @@
                             {{ Str::limit($log->path, 45) }}
                         </a>
                         @if($log->is_json)
-                            <span class="badge bg-success bg-opacity-10 text-success ms-1" style="font-size:.65rem;">JSON</span>
+                            <span class="badge bg-success-subtle text-success ms-1" style="font-size:.65rem;">JSON</span>
                         @endif
                     </td>
                     <td><code class="small">{{ $log->ip_address ?? '—' }}</code></td>
@@ -111,7 +111,7 @@
                     <td class="small text-muted">{{ $log->formatted_size }}</td>
                     <td class="text-center">
                         @if($log->has_files)
-                            <span class="badge bg-info text-dark">
+                            <span class="badge bg-info-subtle text-info">
                                 {{ $log->uploadedFiles->count() }} <i class="fas fa-paperclip"></i>
                             </span>
                         @else
@@ -126,7 +126,7 @@
                                 <i class="fas fa-eye"></i>
                             </a>
                             <form method="POST" action="{{ route('ut.data-receiver.log.destroy', $log->uuid) }}"
-                                  onsubmit="return confirm('Delete this log and its files?')">
+                                  onsubmit="if (!confirm('Delete this log and its files?')) { event.stopPropagation(); return false; }">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-xs btn-outline-danger btn-sm" title="Delete">
                                     <i class="fas fa-trash"></i>

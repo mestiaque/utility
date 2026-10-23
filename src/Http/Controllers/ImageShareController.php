@@ -59,7 +59,7 @@ class ImageShareController extends Controller
             'size'          => $finalSize,
         ]);
 
-        return back()->with('img_success', 'Image uploaded successfully.');
+        return back()->with('success', 'Image uploaded successfully.');
     }
 
     // ── Public image serve — NO AUTH ───────────────────────────────────────────
@@ -88,7 +88,7 @@ class ImageShareController extends Controller
         $image->deleteFile();
         $image->delete(); // soft delete
 
-        return back()->with('img_success', 'Image deleted.');
+        return back()->with('success', 'Image deleted.');
     }
 
     // ── API: list ──────────────────────────────────────────────────────────────

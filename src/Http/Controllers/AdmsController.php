@@ -33,7 +33,7 @@ class AdmsController extends Controller
 
         AdmsSetting::instance()->update($data);
 
-        return back()->with('config_success', 'Configuration saved.');
+        return back()->with('success', 'Configuration saved.');
     }
 
     public function testConnection(): JsonResponse
@@ -71,6 +71,6 @@ class AdmsController extends Controller
 
         AdmsSetting::instance()->update($data);
 
-        return back()->with('schedule_success', 'Schedule saved.');
+        return back()->with('success', 'Schedule saved.');
     }
 }

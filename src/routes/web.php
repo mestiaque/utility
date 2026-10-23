@@ -8,6 +8,7 @@ use ME\Utility\Http\Controllers\GeneratePackageController;
 use ME\Utility\Http\Controllers\BajarListController;
 use ME\Utility\Http\Controllers\ImageShareController;
 use ME\Utility\Http\Controllers\InvoiceGeneratorController;
+use ME\Utility\Http\Controllers\MediaDownloaderController;
 use ME\Utility\Http\Controllers\UtilityController;
 
 Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'auth', LocaleMiddleware::class, 'activityLog']], function () {
@@ -61,6 +62,34 @@ Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'aut
             ->middleware('throttle:10,1')
             ->name('image-share.store');
         Route::delete('/{uuid}',   [ImageShareController::class, 'destroy'])->name('image-share.destroy');
+    });
+
+    // ── Media Downloader ──────────────────────────────────────────────────────
+    Route::prefix('media-downloader')->group(function () {
+        $throttle = config('utility.media_downloader.throttle', []);
+
+        Route::get('/',                         [MediaDownloaderController::class, 'index'])->name('media-downloader.index');
+        Route::post('/analyze',                 [MediaDownloaderController::class, 'analyze'])
+            ->middleware('throttle:' . ($throttle['analyze'] ?? '10,1'))
+            ->name('media-downloader.analyze');
+        Route::post('/downloads',               [MediaDownloaderController::class, 'download'])
+            ->middleware('throttle:' . ($throttle['download'] ?? '5,1'))
+            ->name('media-downloader.download');
+        Route::get('/downloads/{uuid}/status',  [MediaDownloaderController::class, 'status'])->name('media-downloader.status');
+        Route::get('/downloads/{uuid}/file',    [MediaDownloaderController::class, 'file'])->name('media-downloader.file');
+        Route::post('/downloads/{uuid}/cancel', [MediaDownloaderController::class, 'cancel'])->name('media-downloader.cancel');
+        Route::delete('/downloads/{uuid}',      [MediaDownloaderController::class, 'destroy'])->name('media-downloader.destroy');
+        Route::post('/batches',                 [MediaDownloaderController::class, 'startBatch'])
+            ->middleware('throttle:' . ($throttle['download'] ?? '5,1'))
+            ->name('media-downloader.batch.start');
+        Route::get('/batches/{batch}/status',   [MediaDownloaderController::class, 'batchStatus'])->whereUuid('batch')->name('media-downloader.batch.status');
+        Route::post('/batches/{batch}/cancel',  [MediaDownloaderController::class, 'batchCancel'])->whereUuid('batch')->name('media-downloader.batch.cancel');
+        Route::post('/batches/{batch}/retry',   [MediaDownloaderController::class, 'batchRetry'])
+            ->middleware('throttle:' . ($throttle['download'] ?? '5,1'))
+            ->whereUuid('batch')->name('media-downloader.batch.retry');
+        Route::get('/batches/{batch}/zip',      [MediaDownloaderController::class, 'batchZip'])->whereUuid('batch')->name('media-downloader.batch.zip');
+        Route::post('/cookies',                 [MediaDownloaderController::class, 'storeCookies'])->name('media-downloader.cookies.store');
+        Route::delete('/cookies',               [MediaDownloaderController::class, 'destroyCookies'])->name('media-downloader.cookies.destroy');
     });
 
     // ── Data Receiver (admin panel) ───────────────────────────────────────────

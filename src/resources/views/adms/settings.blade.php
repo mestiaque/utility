@@ -5,18 +5,7 @@
 @section('content')
 
 {{-- ── Flash messages ─────────────────────────────────────────────────────── --}}
-@if(session('config_success'))
-    <div class="alert alert-success alert-dismissible fade show py-2" role="alert">
-        <i class="fas fa-check-circle me-2"></i>{{ session('config_success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-@if(session('schedule_success'))
-    <div class="alert alert-success alert-dismissible fade show py-2" role="alert">
-        <i class="fas fa-check-circle me-2"></i>{{ session('schedule_success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
+{{-- Success / error messages are shown as toasts by the me::master layout --}}
 
 <div class="row g-4 mb-4">
 
@@ -234,6 +223,7 @@
 @endsection
 
 @push('scripts')
+@include('utility::partials.toast')
 <script>
 document.getElementById('testConnectionBtn').addEventListener('click', function () {
     const btn    = this;
@@ -249,16 +239,10 @@ document.getElementById('testConnectionBtn').addEventListener('click', function 
     })
     .then(r => r.json())
     .then(data => {
-        result.classList.remove('d-none');
-        if (data.ok) {
-            result.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i>' + data.message + '</span>';
-        } else {
-            result.innerHTML = '<span class="text-danger"><i class="fas fa-times-circle me-1"></i>' + data.message + '</span>';
-        }
+        utNotify(data.ok ? 'success' : 'error', data.message);
     })
     .catch(() => {
-        result.classList.remove('d-none');
-        result.innerHTML = '<span class="text-danger"><i class="fas fa-times-circle me-1"></i>Request failed.</span>';
+        utNotify('error', 'Request failed.');
     })
     .finally(() => {
         btn.disabled = false;

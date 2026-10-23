@@ -1,0 +1,12 @@
+{
+    "id": "7300000000000000000",
+    "title": "Portrait clip",
+    "uploader": "someone",
+    "duration": 15.4,
+    "thumbnail": "https://p16-sign.tiktokcdn.com/thumb.jpeg",
+    "extractor_key": "TikTok",
+    "formats": [
+        {"format_id": "download", "ext": "mp4", "width": 576, "height": 1024, "vcodec": "h264", "acodec": "aac", "tbr": 900},
+        {"format_id": "play-1080", "ext": "mp4", "width": 1080, "height": 1920, "vcodec": "h264", "acodec": "aac", "tbr": 2500, "filesize": 4800000}
+    ]
+}

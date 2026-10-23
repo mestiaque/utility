@@ -48,6 +48,7 @@
 @endsection
 
 @push('scripts')
+@include('utility::partials.toast')
     <script>
         document.getElementById('generateBtn').addEventListener('click', async function() {
             const btn = this;
@@ -96,7 +97,7 @@
                     if(progress >= 100) {
                         clearInterval(interval);
                         statusText.innerText = 'Completed!';
-                        info.innerHTML += '<strong class="text-success">Done! Check your downloads.</strong>';
+                        utNotify('success', 'Package generated. Check your downloads.');
 
                         // Trigger Download
                         const url = window.URL.createObjectURL(blob);
@@ -112,7 +113,7 @@
                 }, 50);
 
             } catch (error) {
-                info.innerHTML += `<span class="text-danger">Error: ${error.message}</span>`;
+                utNotify('error', 'Error: ' + error.message);
                 btn.disabled = false;
             }
         });

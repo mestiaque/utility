@@ -71,9 +71,9 @@
                                         <button type="submit" class="btn btn-sm btn-encodex-active"><i class="fa fa-check"></i></button>
                                     </form>
                                 @elseif($item->status === 'hold')
-                                    <span class="badge bg-warning text-dark">Hold</span>
+                                    <span class="badge bg-warning-subtle text-warning">Hold</span>
                                 @else
-                                    <span class="badge bg-success">Purchased</span>
+                                    <span class="badge bg-success-subtle text-success">Purchased</span>
                                 @endif
                             </td>
                             <td>
@@ -279,6 +279,7 @@
 @endpush
 
 @push('js')
+@include('utility::partials.toast')
 <script>
 $(document).ready(function () {
 
@@ -412,7 +413,7 @@ function makeEditable(td, url, field) {
     }
 
     if (!itemId) {
-        alert('Item ID not found.');
+        utNotify('error', 'Item ID not found.');
         $td.text(oldValue).attr('contenteditable', false);
         return;
     }
@@ -446,6 +447,7 @@ function makeEditable(td, url, field) {
                 },
                 success: function () {
                     $td.text(value);
+                    utNotify('success', 'Saved.');
                     $td.css('background-color', '#d4edda');
                     setTimeout(() => $td.css('background-color', ''), 800);
                 },
@@ -453,7 +455,7 @@ function makeEditable(td, url, field) {
                     $td.text(oldValue);
                     $td.css('background-color', '#f8d7da');
                     setTimeout(() => $td.css('background-color', ''), 1200);
-                    alert('Failed to save.');
+                    utNotify('error', 'Failed to save.');
                 }
             });
         } else {

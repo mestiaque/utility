@@ -76,6 +76,7 @@
 </div>
 
 @push('scripts')
+@include('utility::partials.toast')
 <script>
     const typeOptions = `
         <option value="string">string</option>
@@ -149,11 +150,12 @@
             document.body.appendChild(a);
             a.click();
             a.remove();
+            utNotify('success', 'Feature ZIP generated.');
             this.disabled = false;
             this.innerHTML = '<i class="fas fa-download me-1"></i>Generate Flat ZIP';
         })
         .catch(err => {
-            alert(err.message);
+            utNotify('error', err.message);
             this.disabled = false;
             this.innerHTML = '<i class="fas fa-download me-1"></i>Generate Flat ZIP';
         });
