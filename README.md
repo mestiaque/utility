@@ -64,7 +64,10 @@ yt-dlp build (the "onedir" one, which also works where `/tmp` is mounted `noexec
 FFmpeg build are downloaded into `storage/app/media-tools` and used automatically — no `.env`
 change is needed while `YT_DLP_BINARY` / `FFMPEG_BINARY` are left at their default names.
 The same dialog lists what the host blocks (e.g. `proc_open` in `disable_functions`, time limits).
+The install runs in the background and the dialog shows each step and the exact error, if any.
 Click the button again later to update yt-dlp. With SSH: `php artisan utility:media-install`.
+About 450 MB of disk is used. yt-dlp needs glibc 2.17+, this FFmpeg build glibc 2.28+
+(AlmaLinux / CloudLinux 8 or newer).
 
 Shared hosts still limit CPU time, memory and disk, and big sites often block their IPs, so long
 or bulk downloads may stop; a small VPS avoids all of that.

@@ -209,33 +209,40 @@ class MediaDownloaderController extends Controller
         return response()->json($this->setupState($installer));
     }
 
+    /** Starts the install after the response: it can outlast what a host allows a request. */
     public function setupInstall(ToolInstaller $installer): JsonResponse
     {
         if ($reason = $this->cannotInstall($installer)) {
-            return response()->json(['message' => $reason] + $this->setupState($installer), 422);
+            return response()->json(['message' => $reason], 422);
         }
 
-        // yt-dlp is always refreshed (sites change often); FFmpeg only when none works yet
-        $tools = [ToolInstaller::YT_DLP];
-        if (app(YtDlp::class)->ffmpegVersion() === null) {
-            $tools[] = ToolInstaller::FFMPEG;
-        }
-
-        $results = [];
-        foreach ($tools as $tool) {
-            try {
-                $results[] = ['tool' => $tool, 'ok' => true, 'message' => $installer->install($tool)];
-            } catch (\RuntimeException $e) {
-                $results[] = ['tool' => $tool, 'ok' => false, 'message' => $e->getMessage()];
+        if (! $installer->isBusy()) {
+            // yt-dlp is always refreshed (sites change often); FFmpeg only when none works yet
+            $tools = [ToolInstaller::YT_DLP];
+            if (app(YtDlp::class)->ffmpegVersion() === null) {
+                $tools[] = ToolInstaller::FFMPEG;
             }
+
+            try {
+                $installer->begin($tools);
+            } catch (\Throwable $e) {
+                return response()->json(['message' => 'Cannot write to ' . $installer->directory() . ': ' . $e->getMessage()], 422);
+            }
+
+            app()->terminating(fn () => $installer->installAll($tools));
         }
 
-        // Re-resolve the binaries so the checks below see the fresh install
-        foreach ([YtDlp::class, MediaDownloadService::class] as $abstract) {
-            app()->forgetInstance($abstract);
-        }
+        return response()->json($this->installState($installer), 202);
+    }
 
-        return response()->json(['results' => $results] + $this->setupState($installer));
+    public function setupStatus(ToolInstaller $installer): JsonResponse
+    {
+        return response()->json($this->installState($installer));
+    }
+
+    private function installState(ToolInstaller $installer): array
+    {
+        return ['installing' => $installer->isBusy(), 'install' => $installer->status()];
     }
 
     private function setupState(ToolInstaller $installer): array
@@ -245,7 +252,7 @@ class MediaDownloaderController extends Controller
             'can_install'   => $this->cannotInstall($installer) === null,
             'install_note'  => $this->cannotInstall($installer),
             'tools_dir'     => $installer->directory(),
-        ];
+        ] + $this->installState($installer);
     }
 
     private function cannotInstall(ToolInstaller $installer): ?string

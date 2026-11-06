@@ -242,4 +242,20 @@ class MediaDownloaderControllerTest extends TestCase
 
         \Illuminate\Support\Facades\File::deleteDirectory($dir);
     }
+
+    public function test_install_status_survives_requests_and_a_killed_run_goes_stale(): void
+    {
+        $dir       = sys_get_temp_dir() . '/md-tools-' . uniqid();
+        $installer = new \ME\Utility\Services\MediaDownloader\ToolInstaller($dir);
+
+        $installer->begin(['yt-dlp']);
+        $this->assertTrue($installer->isBusy());
+        $this->assertSame('queued', $installer->status()['yt-dlp']['state']);
+
+        file_put_contents($dir . '/.install-status.json', json_encode(['yt-dlp' => ['state' => 'running', 'message' => 'x', 'at' => time() - 3600]]));
+        $this->assertFalse($installer->isBusy());
+        $this->assertSame('failed', $installer->status()['yt-dlp']['state']);
+
+        \Illuminate\Support\Facades\File::deleteDirectory($dir);
+    }
 }

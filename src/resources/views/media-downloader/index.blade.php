@@ -435,7 +435,7 @@
                 <button type="button" class="btn btn-encodex-cancel btn-sm" data-bs-dismiss="modal">Close</button>
                 <button type="button" id="mdSetupInstall" class="btn btn-sm btn-encodex-save" disabled>
                     <span class="md-btn-label"><i class="fas fa-download me-1"></i> Install / update tools</span>
-                    <span class="md-btn-busy d-none"><span class="spinner-border spinner-border-sm me-1"></span> Installing… (1–2 min)</span>
+                    <span class="md-btn-busy d-none"><span class="spinner-border spinner-border-sm me-1"></span> Installing… (a few minutes)</span>
                 </button>
             </div>
         </div>
@@ -536,6 +536,7 @@
     const routes = {
         analyze:  @js(route('ut.media-downloader.analyze')),
         setup:    @js(route('ut.media-downloader.setup')),
+        setupStatus: @js(route('ut.media-downloader.setup.status')),
         setupInstall: @js(route('ut.media-downloader.setup.install')),
         download: @js(route('ut.media-downloader.download')),
         batchStart: @js(route('ut.media-downloader.batch.start')),
@@ -567,6 +568,7 @@
         if (!res.ok) {
             let msg = json.message || 'Something went wrong. Please try again.';
             if (res.status === 429) msg = 'Too many requests. Please wait a minute and try again.';
+            if (!json.message && !json.errors) msg += ' (HTTP ' + res.status + ')';
             if (json.errors) msg = Object.values(json.errors).flat().join('\n');
             const err = new Error(msg);
             err.reason = json.reason;
@@ -836,7 +838,11 @@
     async function loadSetup() {
         $('mdSetupLoading').classList.remove('d-none');
         try {
-            renderSetup(await getJson(routes.setup));
+            const state = await getJson(routes.setup);
+            renderSetup(state);
+            renderInstall(state);
+            // Reopened while an install runs in the background: keep following it
+            if (state.installing) followInstall();
         } catch (err) {
             showError($('mdSetupNote'), err.message);
         } finally {
@@ -850,28 +856,59 @@
 
     $('mdSetupModal').addEventListener('show.bs.modal', loadSetup);
 
+    // One line per tool: waiting / current step, then its version or the exact error
+    function renderInstall(state) {
+        const box = $('mdSetupResults');
+        box.replaceChildren();
+        Object.entries(state.install || {}).forEach(([tool, r]) => {
+            const div = document.createElement('div');
+            div.className = {done: 'text-success', failed: 'text-danger'}[r.state] || 'text-muted';
+            div.textContent = ({done: '✓ ', failed: '✗ '}[r.state] || '… ') + tool + ': ' + r.message;
+            box.appendChild(div);
+        });
+    }
+
+    let setupTimer = null;
+
+    function followInstall() {
+        clearTimeout(setupTimer);
+        setInstallBusy(true);
+
+        const poll = async () => {
+            let state;
+            try {
+                state = await getJson(routes.setupStatus);
+            } catch (err) {
+                setupTimer = setTimeout(poll, 5000); // the install goes on; only this check failed
+                return;
+            }
+            renderInstall(state);
+            if (state.installing) {
+                setupTimer = setTimeout(poll, 3000);
+                return;
+            }
+
+            setInstallBusy(false);
+            const failed = Object.values(state.install || {}).some(r => r.state === 'failed');
+            notify(failed ? 'error' : 'success', failed ? 'Install failed — see the details in Server setup.' : 'Tools installed. You can analyze links now.');
+            await loadSetup();
+        };
+        poll();
+    }
+
     $('mdSetupInstall').addEventListener('click', async () => {
         setInstallBusy(true);
+        showError($('mdSetupNote'), '');
         $('mdSetupResults').replaceChildren();
-        let state;
         try {
-            state = await postJson(routes.setupInstall);
+            renderInstall(await postJson(routes.setupInstall));
         } catch (err) {
-            state = err.data && err.data.checks ? err.data : null;
+            setInstallBusy(false);
+            showError($('mdSetupNote'), err.message);
             notify('error', err.message);
+            return;
         }
-        setInstallBusy(false);
-        if (!state) return;
-
-        renderSetup(state);
-        (state.results || []).forEach(r => {
-            const div = document.createElement('div');
-            div.className = r.ok ? 'text-success' : 'text-danger';
-            div.textContent = (r.ok ? '✓ ' : '✗ ') + r.tool + ': ' + r.message;
-            $('mdSetupResults').appendChild(div);
-        });
-        const failed = (state.results || []).filter(r => !r.ok);
-        if (state.results && !failed.length) notify('success', 'Tools installed. You can analyze links now.');
+        followInstall();
     });
 
     // ── Download progress panel (one per result card, plus one for history downloads) ──
