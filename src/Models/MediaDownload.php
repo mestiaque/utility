@@ -27,6 +27,7 @@ class MediaDownload extends Model
         'url',
         'platform',
         'title',
+        'thumbnail',
         'format',
         'output_type',
         'extension',
@@ -210,6 +211,7 @@ class MediaDownload extends Model
             'eta'           => $this->eta !== null ? gmdate($this->eta >= 3600 ? 'H:i:s' : 'i:s', $this->eta) : null,
             'filesize'      => $this->formatted_size,
             'title'         => $this->title,
+            'thumbnail'     => $this->thumbnail,
             'error_message' => $this->error_message,
             'file_url'      => $this->hasFile() ? route('ut.media-downloader.file', $this->uuid) : null,
         ];

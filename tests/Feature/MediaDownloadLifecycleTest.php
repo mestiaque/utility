@@ -186,6 +186,25 @@ class MediaDownloadLifecycleTest extends TestCase
         $this->assertSame(MediaDownload::STATUS_FAILED, $failed->fresh()->status);
     }
 
+    public function test_opening_the_page_cleans_up_without_cron_at_most_every_ten_minutes(): void
+    {
+        $download = $this->pending();
+        $this->fakeYtDlp();
+        $this->service()->run($download, self::URL, 'video-1080');
+        $download->forceFill(['completed_at' => now()->subHours(2)])->save();
+
+        $this->actingAs($this->user())->get(route('ut.media-downloader.index'))->assertOk();
+        $this->assertDirectoryDoesNotExist($this->service()->directoryFor($download));
+        $this->assertNull($download->fresh()->file_path);
+
+        $second = $this->pending();
+        $this->service()->run($second, self::URL, 'video-1080');
+        $second->forceFill(['completed_at' => now()->subHours(2)])->save();
+
+        $this->actingAs($this->user())->get(route('ut.media-downloader.index'))->assertOk();
+        $this->assertDirectoryExists($this->service()->directoryFor($second));
+    }
+
     public function test_cleanup_removes_expired_files_and_fails_stuck_downloads(): void
     {
         $download = $this->pending();

@@ -10,6 +10,9 @@ return [
         'ffmpeg_binary' => env('FFMPEG_BINARY', 'ffmpeg'),
         // Optional image engine (TikTok photo posts, carousels…); without it only video/audio
         'gallery_dl_binary' => env('GALLERY_DL_BINARY', 'gallery-dl'),
+        // Where "Server setup" (or utility:media-install) puts yt-dlp / FFmpeg when the server
+        // has none, e.g. cPanel shared hosting. Used automatically while the binaries above are bare names.
+        'tools_directory' => env('MEDIA_DOWNLOADER_TOOLS_DIR', storage_path('app/media-tools')),
 
         // Seconds: link analysis limit, a download's absolute maximum, and how long a download
         // may show no progress before it is treated as stuck (long videos are fine while they move)

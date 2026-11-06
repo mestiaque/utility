@@ -30,13 +30,16 @@ class PlaylistBuilder
             }
 
             $nested = $this->isNestedList($entry);
+            $title  = trim((string) ($entry['title'] ?? ''));
 
             $entries[] = [
                 'id'        => (string) $i,
                 'kind'      => $nested ? PlaylistInfo::KIND_PLAYLIST : PlaylistInfo::KIND_VIDEO,
                 'media'     => $nested ? null : $this->mediaKind($entry, $entryUrl),
                 'url'       => $entryUrl,
-                'title'     => Str::limit(trim((string) ($entry['title'] ?? '')) ?: 'Item ' . ($i + 1), 300),
+                'title'     => Str::limit($title ?: 'Item ' . ($i + 1), 300),
+                // Flat listings of some sites carry no titles; the real one is read at download time
+                'untitled'  => $title === '',
                 'duration'  => isset($entry['duration']) && is_numeric($entry['duration']) ? (int) round($entry['duration']) : null,
                 'thumbnail' => $this->thumbnail($entry),
             ];

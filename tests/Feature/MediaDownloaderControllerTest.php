@@ -30,7 +30,7 @@ class MediaDownloaderControllerTest extends TestCase
             ->assertSee('Media Downloader')
             ->assertSee('Analyze')
             // Thumbnail is blurred behind a press-and-hold button
-            ->assertSee('<div id="mdThumbBox" class="md-media rounded border d-none">', false)
+            ->assertSee('<div data-md="thumbBox" class="md-media rounded border d-none">', false)
             ->assertSee('class="md-peek"', false);
     }
 
@@ -195,5 +195,51 @@ class MediaDownloaderControllerTest extends TestCase
             ->assertRedirect();
 
         $this->assertModelMissing($download);
+    }
+
+    public function test_destroy_all_clears_only_own_history(): void
+    {
+        $mine  = MediaDownload::create(['user_id' => 1, 'url' => self::URL, 'format' => 'audio-mp3', 'status' => 'failed']);
+        $mine2 = MediaDownload::create(['user_id' => 1, 'url' => self::URL, 'format' => 'video-720', 'status' => 'pending']);
+        $other = MediaDownload::create(['user_id' => 2, 'url' => self::URL, 'format' => 'audio-mp3', 'status' => 'failed']);
+
+        $this->actingAs($this->user())
+            ->delete(route('ut.media-downloader.destroy-all'))
+            ->assertRedirect();
+
+        $this->assertModelMissing($mine);
+        $this->assertModelMissing($mine2);
+        $this->assertModelExists($other);
+    }
+
+    public function test_setup_lists_server_checks(): void
+    {
+        Process::fake(['*--version*' => Process::result('2099.01.01'), '*-version*' => Process::result('ffmpeg version 6.0')]);
+
+        $checks = collect($this->actingAs($this->user())
+            ->getJson(route('ut.media-downloader.setup'))
+            ->assertOk()
+            ->assertJsonStructure(['checks' => [['key', 'name', 'status', 'detail']], 'can_install'])
+            ->json('checks'))->keyBy('key');
+
+        $this->assertSame('ok', $checks['proc_open']['status']);
+        $this->assertSame('ok', $checks['ffmpeg']['status']);
+    }
+
+    public function test_installed_tool_is_used_only_while_the_config_is_a_bare_name(): void
+    {
+        $dir       = sys_get_temp_dir() . '/md-tools-' . uniqid();
+        $installer = new \ME\Utility\Services\MediaDownloader\ToolInstaller($dir);
+
+        $this->assertSame('yt-dlp', $installer->resolve('yt-dlp', 'yt-dlp'));
+
+        mkdir($dir . '/yt-dlp', 0755, true);
+        touch($dir . '/yt-dlp/yt-dlp_linux');
+        chmod($dir . '/yt-dlp/yt-dlp_linux', 0755);
+
+        $this->assertSame($dir . '/yt-dlp/yt-dlp_linux', $installer->resolve('yt-dlp', 'yt-dlp'));
+        $this->assertSame('/usr/local/bin/yt-dlp', $installer->resolve('yt-dlp', '/usr/local/bin/yt-dlp'));
+
+        \Illuminate\Support\Facades\File::deleteDirectory($dir);
     }
 }

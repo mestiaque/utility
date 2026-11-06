@@ -57,6 +57,18 @@ Selectors stay on the server. The browser only sends an option key such as `vide
 - A writable temporary directory (default `storage/app/media-temp`)
 - Optional: `ext-pcntl` so cancel and timeout can stop yt-dlp cleanly
 
+### cPanel / shared hosting (no root, no terminal)
+
+Open the Media Downloader page → **Server setup** → **Install / update tools**. The official
+yt-dlp build (the "onedir" one, which also works where `/tmp` is mounted `noexec`) and a static
+FFmpeg build are downloaded into `storage/app/media-tools` and used automatically — no `.env`
+change is needed while `YT_DLP_BINARY` / `FFMPEG_BINARY` are left at their default names.
+The same dialog lists what the host blocks (e.g. `proc_open` in `disable_functions`, time limits).
+Click the button again later to update yt-dlp. With SSH: `php artisan utility:media-install`.
+
+Shared hosts still limit CPU time, memory and disk, and big sites often block their IPs, so long
+or bulk downloads may stop; a small VPS avoids all of that.
+
 ### 3. Installing yt-dlp
 
 Distribution packages (e.g. Ubuntu's `apt install yt-dlp`) are usually too old to work with YouTube.

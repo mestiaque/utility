@@ -220,7 +220,8 @@ class MediaDownloadService
                 'batch_title' => $list->title,
                 'url'         => $entry['url'],
                 'platform'    => $list->platform,
-                'title'       => $entry['title'],
+                'title'       => ($entry['untitled'] ?? false) ? null : $entry['title'],
+                'thumbnail'   => $entry['thumbnail'],
                 'format'      => 'preset-' . $preset,
                 'output_type' => $outputType,
                 'status'      => MediaDownload::STATUS_PENDING,
@@ -292,8 +293,10 @@ class MediaDownloadService
     }
 
     /**
-     * Packs every finished file of a batch into one ZIP (stored, not re-compressed: media is
-     * already compressed), streams it, then removes the ZIP and — unless keep_files — the files.
+     * Streams every finished file of a batch as one ZIP (stored, not re-compressed: media is
+     * already compressed). The archive is written while it is sent, so no temporary ZIP needs
+     * disk space or time before the download starts; afterwards — unless keep_files — the
+     * files are removed.
      */
     public function streamBatchZip(string $batchId, ?int $userId): StreamedResponse
     {
@@ -301,26 +304,15 @@ class MediaDownloadService
         $items = MediaDownload::ownedBy($userId)->where('batch_id', $batchId)->orderBy('id')->get()->filter->hasFile()->values();
         abort_if($items->isEmpty(), 404, 'No finished files in this bulk download.');
 
-        $root = $this->temporaryRoot();
-        $size = $items->sum(fn (MediaDownload $d) => (int) filesize($d->file_path));
-        $free = @disk_free_space($root);
-        if ($free !== false && $free < $size + (int) ($this->config['min_free_space'] ?? 0)) {
-            abort(507, MediaDownloaderException::because(MediaDownloaderException::DISK_SPACE)->userMessage());
-        }
-
-        $zipPath = $root . '/batch-' . $batchId . '.zip';
-        $zip     = new ZipArchive();
-        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            abort(500, MediaDownloaderException::because(MediaDownloaderException::PERMISSION_DENIED)->userMessage());
-        }
+        $zip = new ZipStream();
 
         // Every image of every photo post goes into one "images/" folder, numbered serially in
         // post order (001.jpg, 002.jpg …); videos stay at the top level. Photo-post ZIPs are
-        // unpacked on disk (not in memory) and the temporary copies removed afterwards.
-        $extractRoot = $root . '/batch-' . $batchId . '-files';
-        $imageTotal  = $items->sum(fn (MediaDownload $d) => $this->imageCount($d->file_path));
-        $width       = max(3, strlen((string) $imageTotal));
-        $serial      = 0;
+        // read entry by entry, never unpacked.
+        $imageTotal = $items->sum(fn (MediaDownload $d) => $this->imageCount($d->file_path));
+        $width      = max(3, strlen((string) $imageTotal));
+        $serial     = 0;
+        $inners     = [];
 
         $used = [];
         foreach ($items as $item) {
@@ -328,7 +320,7 @@ class MediaDownloadService
             $ext  = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
             if ($ext === 'zip' || in_array($ext, GalleryDl::IMAGE_EXTENSIONS, true)) {
-                $this->addImagesSerially($zip, $path, $extractRoot, $serial, $width);
+                $this->addImagesSerially($zip, $path, $inners, $serial, $width);
                 continue;
             }
 
@@ -341,24 +333,22 @@ class MediaDownloadService
             $used[strtolower($name)] = true;
 
             $zip->addFile($path, $name);
-            $zip->setCompressionName($name, ZipArchive::CM_STORE);
         }
-        $zip->close();
-        File::deleteDirectory($extractRoot);
 
         $keep     = (bool) ($this->config['keep_files'] ?? false);
         $fileName = (Str::limit(Str::slug((string) $items->first()->batch_title), 80, '') ?: 'media') . '.zip';
 
-        return response()->streamDownload(function () use ($zipPath, $items, $keep) {
+        return response()->streamDownload(function () use ($zip, $inners, $items, $keep) {
+            @set_time_limit(0); // many large videos take longer than max_execution_time
             try {
-                $in = fopen($zipPath, 'rb');
-                while (! feof($in)) {
-                    echo fread($in, 1024 * 1024);
+                $zip->stream(function (string $bytes) {
+                    echo $bytes;
                     flush();
-                }
-                fclose($in);
+                });
             } finally {
-                @unlink($zipPath);
+                foreach ($inners as $inner) {
+                    $inner->close();
+                }
                 if (! $keep) {
                     foreach ($items as $item) {
                         $this->deleteDirectory($this->directoryFor($item));
@@ -368,7 +358,7 @@ class MediaDownloadService
             }
         }, $fileName, [
             'Content-Type'           => 'application/zip',
-            'Content-Length'         => (string) filesize($zipPath),
+            'Content-Length'         => (string) $zip->size(),
             'X-Content-Type-Options' => 'nosniff',
             'Cache-Control'          => 'no-store',
         ]);
@@ -400,20 +390,17 @@ class MediaDownloadService
     /**
      * Adds an image (or every image inside a photo-post ZIP) as "images/<serial>.<ext>".
      * $serial continues across posts so the folder reads 001, 002, … in post order.
+     * Opened photo-post ZIPs are collected in $inners and must stay open until streamed.
+     *
+     * @param list<ZipArchive> $inners
      */
-    private function addImagesSerially(ZipArchive $zip, string $path, string $extractRoot, int &$serial, int $width): void
+    private function addImagesSerially(ZipStream $zip, string $path, array &$inners, int &$serial, int $width): void
     {
-        self::makeDirectory($extractRoot, 0770);
-
-        $add = function (string $file, string $ext) use ($zip, &$serial, $width): void {
-            $name = 'images/' . str_pad((string) ++$serial, $width, '0', STR_PAD_LEFT) . '.' . ($ext === 'jpeg' ? 'jpg' : $ext);
-            $zip->addFile($file, $name);
-            $zip->setCompressionName($name, ZipArchive::CM_STORE);
-        };
+        $nameFor = fn (string $ext) => 'images/' . str_pad((string) ++$serial, $width, '0', STR_PAD_LEFT) . '.' . ($ext === 'jpeg' ? 'jpg' : $ext);
 
         $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
         if ($ext !== 'zip') {
-            $add($path, $ext);
+            $zip->addFile($path, $nameFor($ext));
 
             return;
         }
@@ -422,21 +409,18 @@ class MediaDownloadService
         if ($inner->open($path) !== true) {
             return;
         }
+        $inners[] = $inner;
 
         for ($i = 0; $i < $inner->numFiles; $i++) {
-            $entry    = (string) $inner->getNameIndex($i);
-            $entryExt = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
+            $stat     = $inner->statIndex($i) ?: ['name' => ''];
+            $entryExt = strtolower(pathinfo((string) $stat['name'], PATHINFO_EXTENSION));
             if (! in_array($entryExt, GalleryDl::IMAGE_EXTENSIONS, true)) {
                 continue;
             }
 
-            // Unique temp name; the entry name itself is never used as a path
-            $file = $extractRoot . '/' . bin2hex(random_bytes(8)) . '.' . $entryExt;
-            if (@copy('zip://' . $path . '#' . $entry, $file)) {
-                $add($file, $entryExt);
-            }
+            // The entry name itself is never used as a path
+            $zip->addStream($nameFor($entryExt), (int) $stat['size'], (int) $stat['crc'], fn () => $inner->getStreamIndex($i));
         }
-        $inner->close();
     }
 
     /** Picks the option for a bulk preset: the best quality at or below the requested height. */
@@ -498,9 +482,10 @@ class MediaDownloadService
                 ? $this->resolvePreset($info, $formatKey)
                 : $this->optionOrFail($info, $formatKey);
 
-            if ($download->title === null || $download->extension === null) {
+            if ($download->title === null || $download->extension === null || $download->thumbnail === null) {
                 $download->forceFill([
                     'title'     => $download->title ?? $info->title,
+                    'thumbnail' => $download->thumbnail ?? $info->thumbnail,
                     'extension' => $option->extension,
                     'filesize'  => $download->filesize ?? $option->filesize,
                 ])->save();
@@ -702,6 +687,23 @@ class MediaDownloadService
         }
 
         return $removed;
+    }
+
+    /**
+     * Hosts without cron (cPanel) never run the scheduler, so page visits and finished downloads
+     * trigger the cleanup too, at most once every 10 minutes. A failure here never breaks them.
+     */
+    public function cleanupIfDue(): void
+    {
+        if (! $this->cache->add('media-downloader:cleanup', true, now()->addMinutes(10))) {
+            return;
+        }
+
+        try {
+            $this->cleanup();
+        } catch (Throwable $e) {
+            Log::warning('[MediaDownloader] cleanup failed', ['error' => $e->getMessage()]);
+        }
     }
 
     /**

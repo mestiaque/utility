@@ -79,6 +79,7 @@ Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'aut
         Route::get('/downloads/{uuid}/file',    [MediaDownloaderController::class, 'file'])->name('media-downloader.file');
         Route::post('/downloads/{uuid}/cancel', [MediaDownloaderController::class, 'cancel'])->name('media-downloader.cancel');
         Route::delete('/downloads/{uuid}',      [MediaDownloaderController::class, 'destroy'])->name('media-downloader.destroy');
+        Route::delete('/downloads',             [MediaDownloaderController::class, 'destroyAll'])->name('media-downloader.destroy-all');
         Route::post('/batches',                 [MediaDownloaderController::class, 'startBatch'])
             ->middleware('throttle:' . ($throttle['download'] ?? '5,1'))
             ->name('media-downloader.batch.start');
@@ -88,6 +89,10 @@ Route::group(['prefix' => 'utility', 'as' => 'ut.', 'middleware' => ['web', 'aut
             ->middleware('throttle:' . ($throttle['download'] ?? '5,1'))
             ->whereUuid('batch')->name('media-downloader.batch.retry');
         Route::get('/batches/{batch}/zip',      [MediaDownloaderController::class, 'batchZip'])->whereUuid('batch')->name('media-downloader.batch.zip');
+        Route::get('/setup',                    [MediaDownloaderController::class, 'setup'])->name('media-downloader.setup');
+        Route::post('/setup/install',           [MediaDownloaderController::class, 'setupInstall'])
+            ->middleware('throttle:3,10')
+            ->name('media-downloader.setup.install');
         Route::post('/cookies',                 [MediaDownloaderController::class, 'storeCookies'])->name('media-downloader.cookies.store');
         Route::delete('/cookies',               [MediaDownloaderController::class, 'destroyCookies'])->name('media-downloader.cookies.destroy');
     });

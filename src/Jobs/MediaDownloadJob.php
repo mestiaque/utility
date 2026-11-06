@@ -51,6 +51,7 @@ class MediaDownloadJob implements ShouldQueue
         }
 
         $service->run($download, $this->url, $this->format);
+        $service->cleanupIfDue();
     }
 
     public function failed(?Throwable $e): void

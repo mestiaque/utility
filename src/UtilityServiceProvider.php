@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use ME\Utility\Console\Commands\MediaCheckCommand;
 use ME\Utility\Console\Commands\MediaCleanupCommand;
+use ME\Utility\Console\Commands\MediaInstallCommand;
 use ME\Utility\Console\Commands\MediaVersionCommand;
 use ME\Utility\Services\MediaDownloader\CookieJar;
 use ME\Utility\Services\MediaDownloader\ErrorClassifier;
@@ -16,6 +17,7 @@ use ME\Utility\Services\MediaDownloader\GalleryDl;
 use ME\Utility\Services\MediaDownloader\MediaDownloadService;
 use ME\Utility\Services\MediaDownloader\PlaylistBuilder;
 use ME\Utility\Services\MediaDownloader\TelegramChannel;
+use ME\Utility\Services\MediaDownloader\ToolInstaller;
 use ME\Utility\Services\MediaDownloader\UrlValidator;
 use ME\Utility\Services\MediaDownloader\YtDlp;
 
@@ -46,6 +48,7 @@ class UtilityServiceProvider extends ServiceProvider
                 MediaCheckCommand::class,
                 MediaVersionCommand::class,
                 MediaCleanupCommand::class,
+                MediaInstallCommand::class,
             ]);
 
             if (config('utility.media_downloader.schedule_cleanup', true)) {
@@ -95,9 +98,14 @@ class UtilityServiceProvider extends ServiceProvider
             array_values(array_filter((array) ($config()['allowed_hosts'] ?? [])))
         ));
 
+        $this->app->singleton(ToolInstaller::class, fn () => new ToolInstaller(
+            (string) ($config()['tools_directory'] ?? storage_path('app/media-tools'))
+        ));
+
+        // A bare binary name falls back to the copy installed by "Server setup" (shared hosting)
         $this->app->singleton(YtDlp::class, fn ($app) => new YtDlp(
-            binary: (string) ($config()['yt_dlp_binary'] ?? 'yt-dlp'),
-            ffmpegBinary: (string) ($config()['ffmpeg_binary'] ?? 'ffmpeg'),
+            binary: $app->make(ToolInstaller::class)->resolve(ToolInstaller::YT_DLP, (string) ($config()['yt_dlp_binary'] ?? 'yt-dlp')),
+            ffmpegBinary: $app->make(ToolInstaller::class)->resolve(ToolInstaller::FFMPEG, (string) ($config()['ffmpeg_binary'] ?? 'ffmpeg')),
             analyzeTimeout: (int) ($config()['analyze_timeout'] ?? 60),
             downloadTimeout: (int) ($config()['timeout'] ?? 10800),
             maxFileSize: (int) ($config()['max_file_size'] ?? 2 * 1024 * 1024 * 1024),

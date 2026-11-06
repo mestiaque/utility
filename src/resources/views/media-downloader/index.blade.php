@@ -8,6 +8,10 @@
 @endphp
 
 @push('buttons')
+    <button type="button" class="btn btn-sm btn-encodex-show" data-bs-toggle="modal" data-bs-target="#mdSetupModal"
+            title="Check the server and install yt-dlp / FFmpeg">
+        <i class="fas fa-tools me-1"></i> <span class="hide-mobile">Server setup</span>
+    </button>
     <button type="button" class="btn btn-sm btn-encodex-edit" data-bs-toggle="modal" data-bs-target="#mdCookiesModal"
             title="Login cookies for private media">
         <i class="fas fa-key me-1"></i> <span class="hide-mobile">Login cookies</span>
@@ -21,7 +25,7 @@
 <style>
     /* Divider between media info and the format tables, only when they sit side by side */
     @media (min-width: 992px) {
-        #mdResult .md-formats { border-left: 1px solid var(--bs-border-color); padding-left: 1.5rem; }
+        #mdResults .md-formats { border-left: 1px solid var(--bs-border-color); padding-left: 1.5rem; }
     }
 
     /* Thumbnails are blurred; pressing and holding the centre button shows them clearly */
@@ -59,53 +63,70 @@
             <input type="url" id="mdUrl" name="url" class="form-control"
                    placeholder="https://example.com/..." maxlength="2048" required>
             <button type="submit" id="mdAnalyzeBtn" class="btn btn-encodex-search px-4">
-                <span class="md-btn-label"><i class="fas fa-search me-1"></i> Analyze</span>
-                <span class="md-btn-busy d-none"><span class="spinner-border spinner-border-sm me-1"></span> Analyzing…</span>
+                <i class="fas fa-search me-1"></i> Analyze
+            </button>
+            <button type="button" id="mdPasteAnalyzeBtn" class="btn btn-encodex-create px-3" title="Paste URL from clipboard and analyze">
+                <i class="fas fa-paste me-1"></i> Paste &amp; Analyze
             </button>
         </div>
         <div class="form-text">
             YouTube, TikTok, Facebook, Instagram, X/Twitter, Pinterest and many more.
             Playlists, channels and profiles work too — pick the videos and download them in bulk.
+            Paste another link any time (or several at once) — each one gets its own result card.
             For private media your account can see, add your login cookies with the <strong>Login cookies</strong> button above.
         </div>
     </form>
 
 </div>
 
-{{-- ── Analysis result: media info (left) · formats (right) --}}
-<div id="mdResult" class="card glass-card p-4 mb-4 d-none">
-    <div class="row g-4">
+{{-- ── Analysis results: one card per analyzed URL (newest first), built from the template below --}}
+<div id="mdResults"></div>
+
+<template id="mdResultTpl">
+<div class="card glass-card p-4 mb-4 md-result">
+    <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+        <a data-md="url" href="#" target="_blank" rel="noopener noreferrer" class="small text-muted text-break no-loader"></a>
+        <button type="button" data-md="close" class="btn-close" title="Remove this result" aria-label="Remove this result"></button>
+    </div>
+
+    <div data-md="loading" class="d-flex align-items-center gap-2 text-muted small">
+        <span class="spinner-border spinner-border-sm"></span> Analyzing…
+    </div>
+    <div data-md="error" class="alert alert-danger py-2 mb-0 d-none" style="white-space:pre-line;"></div>
+
+    {{-- Single media: media info (left) · formats (right) --}}
+    <div data-md="info" class="row g-4 d-none">
         <div class="col-lg-4">
             <div class="row g-3">
                 <div class="col-sm-6">
-                    <div id="mdThumbBox" class="md-media rounded border d-none">
-                        <img id="mdThumb" src="" alt="Thumbnail" class="w-100"
+                    <div data-md="thumbBox" class="md-media rounded border d-none">
+                        <img data-md="thumb" src="" alt="Thumbnail" class="w-100"
                              style="max-height:260px;object-fit:cover;" referrerpolicy="no-referrer" loading="lazy">
                         <button type="button" class="md-peek" title="Press and hold to view" aria-label="Press and hold to view">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
-                    <div id="mdThumbEmpty" class="rounded border d-flex align-items-center justify-content-center text-muted"
+                    <div data-md="thumbEmpty" class="rounded border d-flex align-items-center justify-content-center text-muted"
                          style="height:160px;"><i class="fas fa-film fa-2x opacity-25"></i></div>
                 </div>
                 <div class="col-sm-6">
-                    <h5 id="mdTitle" class="fw-bold mb-3 text-break"></h5>
-                    @foreach(['Platform' => 'mdPlatform', 'Duration' => 'mdDuration', 'Uploader' => 'mdUploader'] as $label => $id)
+                    <h5 data-md="title" class="fw-bold mb-3 text-break"></h5>
+                    @foreach(['Platform' => 'platform', 'Duration' => 'duration', 'Uploader' => 'uploader'] as $label => $role)
                         <div class="d-flex gap-2 small mb-1">
                             <span class="text-muted text-nowrap" style="min-width:72px;">{{ $label }}</span>
-                            <span id="{{ $id }}" class="text-break"></span>
+                            <span data-md="{{ $role }}" class="text-break"></span>
                         </div>
                     @endforeach
-                    <details id="mdDescWrap" class="small mt-2 d-none">
+                    <details data-md="descWrap" class="small mt-2 d-none">
                         <summary class="text-muted">Description</summary>
-                        <p id="mdDescription" class="mt-2 mb-0 text-break" style="white-space:pre-line;"></p>
+                        <p data-md="description" class="mt-2 mb-0 text-break" style="white-space:pre-line;"></p>
                     </details>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-8 md-formats">
-            <div id="mdVideoSection">
+            <div data-md="videoSection">
             <div class="fw-semibold mb-2"><i class="fas fa-video text-primary me-2"></i>Video</div>
             <div class="table-responsive mb-3">
                 <table class="table table-sm table-hover align-middle mb-0">
@@ -116,12 +137,12 @@
                             <th>Size</th><th class="text-end">Action</th>
                         </tr>
                     </thead>
-                    <tbody id="mdVideoRows"></tbody>
+                    <tbody data-md="videoRows"></tbody>
                 </table>
             </div>
             </div>
 
-            <div id="mdAudioSection" class="mb-3">
+            <div data-md="audioSection" class="mb-3">
             <div class="fw-semibold mb-2"><i class="fas fa-music text-success me-2"></i>Audio</div>
             <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle mb-0">
@@ -131,82 +152,82 @@
                             <th>Size</th><th class="text-end">Action</th>
                         </tr>
                     </thead>
-                    <tbody id="mdAudioRows"></tbody>
+                    <tbody data-md="audioRows"></tbody>
                 </table>
             </div>
             </div>
 
             {{-- Images of the post (gallery-dl): blurred previews, one download each, or all as ZIP --}}
-            <div id="mdImageSection" class="d-none">
+            <div data-md="imageSection" class="d-none">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                     <div class="fw-semibold">
-                        <i class="fas fa-images text-warning me-2"></i>Images <span id="mdImageCount" class="small text-muted"></span>
+                        <i class="fas fa-images text-warning me-2"></i>Images <span data-md="imageCount" class="small text-muted"></span>
                     </div>
-                    <button type="button" id="mdImagesAllBtn" class="btn btn-sm btn-encodex-create d-none">
+                    <button type="button" data-md="imagesAllBtn" class="btn btn-sm btn-encodex-create d-none">
                         <i class="fas fa-file-archive me-1"></i> Download all (ZIP)
                     </button>
                 </div>
-                <div id="mdImageGrid" class="d-flex flex-wrap gap-3"></div>
+                <div data-md="imageGrid" class="d-flex flex-wrap gap-3"></div>
             </div>
+        </div>
+    </div>
+
+    {{-- List result (playlist / channel / profile / multi-video page) --}}
+    <div data-md="list" class="d-none">
+        <div class="text-break mb-2">
+            <h5 data-md="plTitle" class="fw-bold mb-1"></h5>
+            <div class="small text-muted">
+                <span data-md="plPlatform"></span>
+                <span data-md="plUploader"></span>
+                · <span data-md="plCount"></span>
+            </div>
+            <div data-md="plTruncated" class="small text-warning d-none">
+                <i class="fas fa-info-circle me-1"></i>Only the first {{ $maxBatch }} items were loaded (MEDIA_DOWNLOADER_MAX_BATCH).
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <div class="form-check me-2">
+                <label class="form-check-label small">
+                    <input class="form-check-input" type="checkbox" data-md="plAll" checked> Select all
+                </label>
+            </div>
+            <div data-md="plTypeFilter" class="btn-group btn-group-sm me-1 d-none" role="group" aria-label="Select by type">
+                <button type="button" class="btn btn-outline-secondary" data-select="video"><i class="fas fa-film me-1"></i>Only videos</button>
+                <button type="button" class="btn btn-outline-secondary" data-select="images"><i class="fas fa-images me-1"></i>Only photos</button>
+            </div>
+            <select data-md="plPreset" class="form-select form-select-sm" style="max-width:260px;">
+                <option value="best">Best quality</option>
+                <option value="2160">4K (2160p) or best below</option>
+                <option value="1440">2K (1440p) or best below</option>
+                <option value="1080" selected>1080p or best below</option>
+                <option value="720">720p or best below</option>
+                <option value="480">480p or best below</option>
+                <option value="360">360p or best below</option>
+                <option value="audio">Audio only (original)</option>
+                <option value="mp3">Audio only (MP3)</option>
+            </select>
+            <button type="button" data-md="plStart" class="btn btn-sm btn-encodex-create">
+                <i class="fas fa-download me-1"></i> Download selected (<span data-md="plSelected">0</span>)
+            </button>
+        </div>
+
+        <div class="table-responsive" style="max-height:480px;overflow-y:auto;">
+            <table class="table table-sm table-hover align-middle mb-0">
+                <thead>
+                    <tr class="small text-muted">
+                        <th></th><th></th><th>Title</th><th>Type</th><th>Duration</th><th></th>
+                    </tr>
+                </thead>
+                <tbody data-md="plRows"></tbody>
+            </table>
         </div>
     </div>
 
     {{-- Progress of a download started from this result is shown here --}}
-    <div id="mdResultProgressSlot"></div>
+    <div data-md="progressSlot"></div>
 </div>
-
-{{-- ── List result (playlist / channel / profile / multi-video page) --}}
-<div id="mdPlaylist" class="card glass-card p-4 mb-4 d-none">
-    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
-        <div class="text-break">
-            <h5 id="mdPlTitle" class="fw-bold mb-1"></h5>
-            <div class="small text-muted">
-                <span id="mdPlPlatform"></span>
-                <span id="mdPlUploader"></span>
-                · <span id="mdPlCount"></span>
-            </div>
-            <div id="mdPlTruncated" class="small text-warning d-none">
-                <i class="fas fa-info-circle me-1"></i>Only the first {{ $maxBatch }} items were loaded (MEDIA_DOWNLOADER_MAX_BATCH).
-            </div>
-        </div>
-    </div>
-
-    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-        <div class="form-check me-2">
-            <input class="form-check-input" type="checkbox" id="mdPlAll" checked>
-            <label class="form-check-label small" for="mdPlAll">Select all</label>
-        </div>
-        <div id="mdPlTypeFilter" class="btn-group btn-group-sm me-1 d-none" role="group" aria-label="Select by type">
-            <button type="button" class="btn btn-outline-secondary" data-select="video"><i class="fas fa-film me-1"></i>Only videos</button>
-            <button type="button" class="btn btn-outline-secondary" data-select="images"><i class="fas fa-images me-1"></i>Only photos</button>
-        </div>
-        <select id="mdPlPreset" class="form-select form-select-sm" style="max-width:260px;">
-            <option value="best">Best quality</option>
-            <option value="2160">4K (2160p) or best below</option>
-            <option value="1440">2K (1440p) or best below</option>
-            <option value="1080" selected>1080p or best below</option>
-            <option value="720">720p or best below</option>
-            <option value="480">480p or best below</option>
-            <option value="360">360p or best below</option>
-            <option value="audio">Audio only (original)</option>
-            <option value="mp3">Audio only (MP3)</option>
-        </select>
-        <button type="button" id="mdPlStart" class="btn btn-sm btn-encodex-create">
-            <i class="fas fa-download me-1"></i> Download selected (<span id="mdPlSelected">0</span>)
-        </button>
-    </div>
-
-    <div class="table-responsive" style="max-height:480px;overflow-y:auto;">
-        <table class="table table-sm table-hover align-middle mb-0">
-            <thead>
-                <tr class="small text-muted">
-                    <th></th><th></th><th>Title</th><th>Type</th><th>Duration</th><th></th>
-                </tr>
-            </thead>
-            <tbody id="mdPlRows"></tbody>
-        </table>
-    </div>
-</div>
+</template>
 
 {{-- ── Bulk progress --}}
 <div id="mdBatch" class="card glass-card p-4 mb-4 d-none">
@@ -242,40 +263,52 @@
     </div>
 </div>
 
-{{-- ── Progress (moved under the result card, or shown in this card for history downloads) --}}
-<div id="mdProgressCard" class="card glass-card p-4 mb-4 d-none">
-    <div id="mdProgress" class="d-none">
+{{-- ── Progress of history downloads (re-download / resume); result cards get their own copy --}}
+<div id="mdProgressCard" class="card glass-card p-4 mb-4 d-none"></div>
+
+<template id="mdProgressTpl">
+    <div>
         <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-2">
             <div class="text-break">
-                <span class="fw-semibold" id="mdProgressStage">Downloading…</span>
-                <span class="small text-muted ms-1" id="mdProgressTitle"></span>
+                <span class="fw-semibold" data-md="stage">Downloading…</span>
+                <span class="small text-muted ms-1" data-md="title"></span>
             </div>
             <div class="small text-muted text-nowrap">
-                Speed <strong id="mdSpeed">–</strong>
-                <span class="mx-1">·</span> ETA <strong id="mdEta">–</strong>
-                <span class="mx-1">·</span> Size <strong id="mdSize">–</strong>
+                Speed <strong data-md="speed">–</strong>
+                <span class="mx-1">·</span> ETA <strong data-md="eta">–</strong>
+                <span class="mx-1">·</span> Size <strong data-md="size">–</strong>
             </div>
         </div>
         <div class="d-flex align-items-center gap-2">
             <div class="progress flex-grow-1" style="height:8px;min-width:120px;">
-                <div id="mdProgressBar" class="progress-bar" role="progressbar" style="width:0%"></div>
+                <div data-md="bar" class="progress-bar" role="progressbar" style="width:0%"></div>
             </div>
-            <div class="fw-bold text-primary text-nowrap text-end" id="mdProgressPercent" style="min-width:3.2rem;"></div>
-            <button type="button" id="mdCancelBtn" class="btn btn-sm btn-encodex-cancel text-nowrap">
+            <div class="fw-bold text-primary text-nowrap text-end" data-md="percent" style="min-width:3.2rem;"></div>
+            <button type="button" data-md="cancel" class="btn btn-sm btn-encodex-cancel text-nowrap">
                 <i class="fas fa-times me-1"></i> Cancel
             </button>
-            <a id="mdSaveBtn" href="#" class="btn btn-sm btn-encodex-save no-loader text-nowrap d-none" download>
+            <a data-md="save" href="#" class="btn btn-sm btn-encodex-save no-loader text-nowrap d-none" download>
                 <i class="fas fa-download me-1"></i> Save file
             </a>
         </div>
-        <div id="mdProgressError" class="alert alert-danger py-2 mt-2 mb-0 d-none" style="white-space:pre-line;"></div>
+        <div data-md="error" class="alert alert-danger py-2 mt-2 mb-0 d-none" style="white-space:pre-line;"></div>
     </div>
-</div>
+</template>
 
 {{-- ── History --}}
 <div class="card glass-card">
     <div class="card-body p-4">
-        <div class="fw-semibold mb-3"><i class="fas fa-history text-warning me-2"></i>Recent Downloads</div>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div class="fw-semibold"><i class="fas fa-history text-warning me-2"></i>Recent Downloads</div>
+            @if($downloads->isNotEmpty())
+                <form method="POST" action="{{ route('ut.media-downloader.destroy-all') }}" class="d-inline"
+                      onsubmit="if (!confirm('Delete the whole download history? Running downloads are cancelled and all saved files are removed.')) { event.stopPropagation(); return false; }">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-encodex-delete"><i class="fas fa-trash me-1"></i> Delete all</button>
+                </form>
+            @endif
+        </div>
 
         @if($downloads->isEmpty())
             <div class="text-center py-4 text-muted">
@@ -372,6 +405,43 @@
     </div>
 </div>
 
+{{-- ── Server setup modal: checks + one-click install of yt-dlp / FFmpeg (shared hosting) --}}
+<div class="modal fade" id="mdSetupModal" tabindex="-1" aria-labelledby="mdSetupModalLabel">
+    <div class="modal-dialog modal-lg glass-card">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mdSetupModalLabel">
+                    <i class="fas fa-tools text-primary me-2"></i>Server setup
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted mb-3">
+                    The downloader needs <strong>yt-dlp</strong> and <strong>FFmpeg</strong>. If the server has none
+                    (cPanel / shared hosting), click <strong>Install / update tools</strong>: they are downloaded
+                    into this app's storage and used automatically — no terminal, no .env change.
+                    Click it again now and then to update yt-dlp when sites stop working.
+                </p>
+                <div id="mdSetupLoading" class="text-muted small"><span class="spinner-border spinner-border-sm me-1"></span> Checking the server…</div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <tbody id="mdSetupRows"></tbody>
+                    </table>
+                </div>
+                <div id="mdSetupNote" class="alert alert-warning py-2 mt-3 mb-0 small d-none"></div>
+                <div id="mdSetupResults" class="mt-3 small"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-encodex-cancel btn-sm" data-bs-dismiss="modal">Close</button>
+                <button type="button" id="mdSetupInstall" class="btn btn-sm btn-encodex-save" disabled>
+                    <span class="md-btn-label"><i class="fas fa-download me-1"></i> Install / update tools</span>
+                    <span class="md-btn-busy d-none"><span class="spinner-border spinner-border-sm me-1"></span> Installing… (1–2 min)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- ── Login cookies modal (own account → private media) --}}
 <div class="modal fade" id="mdCookiesModal" tabindex="-1" aria-labelledby="mdCookiesModalLabel">
     <div class="modal-dialog modal-lg modal-dialog-scrollablex glass-card">
@@ -465,16 +535,18 @@
 (() => {
     const routes = {
         analyze:  @js(route('ut.media-downloader.analyze')),
+        setup:    @js(route('ut.media-downloader.setup')),
+        setupInstall: @js(route('ut.media-downloader.setup.install')),
         download: @js(route('ut.media-downloader.download')),
         batchStart: @js(route('ut.media-downloader.batch.start')),
     };
     const csrf = @js(csrf_token());
     const $ = id => document.getElementById(id);
+    // Elements inside a cloned template are addressed by data-md="…" (ids would repeat)
+    const part = (root, name) => root.querySelector('[data-md="' + name + '"]');
+    const clone = tplId => $(tplId).content.firstElementChild.cloneNode(true);
 
-    let analyzedUrl = null;
-    let lastStatus  = null;       // single download: last status seen (for one-time toasts)
     let lastBatchDone = null;     // bulk download: whether the last poll said "done"
-    let pollTimer   = null;
 
     async function postJson(url, body) {
         const res = await fetch(url, {
@@ -496,7 +568,10 @@
             let msg = json.message || 'Something went wrong. Please try again.';
             if (res.status === 429) msg = 'Too many requests. Please wait a minute and try again.';
             if (json.errors) msg = Object.values(json.errors).flat().join('\n');
-            throw new Error(msg);
+            const err = new Error(msg);
+            err.reason = json.reason;
+            err.data   = json;
+            throw err;
         }
         return json;
     }
@@ -509,12 +584,6 @@
     // Messages go through the theme's toastr (shared helper: partials/toast)
     const notify = (type, message) => utNotify(type, message);
 
-    function setBusy(busy) {
-        $('mdAnalyzeBtn').disabled = busy;
-        $('mdAnalyzeBtn').querySelector('.md-btn-label').classList.toggle('d-none', busy);
-        $('mdAnalyzeBtn').querySelector('.md-btn-busy').classList.toggle('d-none', !busy);
-    }
-
     function cell(text, cls) {
         const td = document.createElement('td');
         td.textContent = text ?? '–';
@@ -522,7 +591,71 @@
         return td;
     }
 
-    function formatRow(opt, isVideo) {
+    // ── Analyze: every URL gets its own result card, several can run at once ──
+    function normalizeUrl(url) {
+        // "tiktok.com/@user/photo/1" → add https:// (other schemes are still rejected)
+        if (!/^[a-z][a-z0-9+.-]*:/i.test(url) && /^(\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?([\/?#]|$)/.test(url)) {
+            url = 'https://' + url.replace(/^\/\//, '');
+        }
+        return /^https?:\/\//i.test(url) ? url : null;
+    }
+
+    // Input may hold one URL or several (separated by spaces / new lines)
+    function analyzeText(text) {
+        const parts = (text || '').split(/\s+/).filter(Boolean);
+        if (!parts.length) return false;
+
+        const urls = parts.map(normalizeUrl);
+        if (urls.some(u => !u)) {
+            notify('error', 'Please enter a valid http:// or https:// URL.');
+            return false;
+        }
+        [...new Set(urls)].forEach(analyze);
+        $('mdUrl').value = '';
+        return true;
+    }
+
+    async function analyze(url) {
+        const card = clone('mdResultTpl');
+        const el = name => part(card, name);
+        const result = {card, url, title: '', progress: null};
+
+        el('url').textContent = url;
+        el('url').href = url;
+        el('close').addEventListener('click', () => {
+            result.progress?.stop();
+            card.remove();
+        });
+        $('mdResults').prepend(card);
+        card.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+
+        try {
+            const json = await postJson(routes.analyze, {url});
+            result.url = json.data.url;
+            if (json.kind === 'playlist') {
+                renderPlaylist(result, json.data);
+            } else {
+                renderInfo(result, json.data);
+            }
+        } catch (err) {
+            showError(el('error'), err.message);
+            notify('error', err.message);
+            // yt-dlp / FFmpeg missing: open Server setup, which can install them
+            if (err.reason === 'binary_missing') openSetup();
+        } finally {
+            el('loading').classList.add('d-none');
+        }
+    }
+
+    // A download started from a result card is tracked inside that card
+    function startDownload(result, format, btn) {
+        if (!result.progress) {
+            result.progress = progressPanel(part(result.card, 'progressSlot'), ['border-top', 'pt-3', 'mt-4']);
+        }
+        result.progress.request(result.url, format, result.title, btn);
+    }
+
+    function formatRow(result, opt, isVideo) {
         const tr = document.createElement('tr');
         tr.appendChild(cell(opt.label, 'fw-semibold'));
         tr.appendChild(cell(opt.extension));
@@ -541,36 +674,37 @@
         btn.type = 'button';
         btn.className = 'btn btn-sm btn-encodex-create';
         btn.innerHTML = '<i class="fas fa-download me-1"></i> Download';
-        btn.addEventListener('click', () => startDownload(opt.key, btn));
+        btn.addEventListener('click', () => startDownload(result, opt.key, btn));
         td.appendChild(btn);
         tr.appendChild(td);
         return tr;
     }
 
-    function renderInfo(info) {
-        $('mdTitle').textContent    = info.title;
-        $('mdPlatform').textContent = info.platform || '–';
-        $('mdDuration').textContent = info.duration || '–';
-        $('mdUploader').textContent = info.uploader || '–';
+    function renderInfo(result, info) {
+        const el = name => part(result.card, name);
+        result.title = info.title;
+
+        el('title').textContent    = info.title;
+        el('platform').textContent = info.platform || '–';
+        el('duration').textContent = info.duration || '–';
+        el('uploader').textContent = info.uploader || '–';
 
         const hasThumb = !!info.thumbnail;
-        $('mdThumbBox').classList.toggle('d-none', !hasThumb);
-        $('mdThumbBox').classList.remove('md-reveal');
-        $('mdThumbEmpty').classList.toggle('d-none', hasThumb);
-        if (hasThumb) $('mdThumb').src = info.thumbnail;
+        el('thumbBox').classList.toggle('d-none', !hasThumb);
+        el('thumbEmpty').classList.toggle('d-none', hasThumb);
+        if (hasThumb) el('thumb').src = info.thumbnail;
 
-        $('mdDescWrap').classList.toggle('d-none', !info.description);
-        $('mdDescription').textContent = info.description || '';
+        el('descWrap').classList.toggle('d-none', !info.description);
+        el('description').textContent = info.description || '';
 
         const images    = info.formats.image || [];
         const hasImages = images.length > 0;
 
-        for (const [type, body, section] of [['video', 'mdVideoRows', 'mdVideoSection'], ['audio', 'mdAudioRows', 'mdAudioSection']]) {
-            const tbody = $(body);
-            tbody.replaceChildren();
+        for (const type of ['video', 'audio']) {
+            const tbody = el(type + 'Rows');
             const rows = info.formats[type];
             // An image-only post (e.g. TikTok photos) shows just its images
-            $(section).classList.toggle('d-none', !rows.length && hasImages);
+            el(type + 'Section').classList.toggle('d-none', !rows.length && hasImages);
             if (!rows.length) {
                 const tr = document.createElement('tr');
                 const td = cell(`No ${type} formats available.`, 'text-muted small');
@@ -578,23 +712,23 @@
                 tr.appendChild(td);
                 tbody.appendChild(tr);
             }
-            rows.forEach(opt => tbody.appendChild(formatRow(opt, type === 'video')));
+            rows.forEach(opt => tbody.appendChild(formatRow(result, opt, type === 'video')));
         }
 
-        renderImages(images);
-        $('mdResult').classList.remove('d-none');
+        renderImages(result, images);
+        el('info').classList.remove('d-none');
     }
 
-    function renderImages(images) {
+    function renderImages(result, images) {
+        const el     = name => part(result.card, name);
         const all    = images.find(o => o.key === 'images-all');
         const single = images.filter(o => o.key !== 'images-all');
-        const grid   = $('mdImageGrid');
+        const grid   = el('imageGrid');
 
-        grid.replaceChildren();
-        $('mdImageSection').classList.toggle('d-none', single.length === 0);
-        $('mdImageCount').textContent = single.length ? '(' + single.length + ')' : '';
-        $('mdImagesAllBtn').classList.toggle('d-none', !all);
-        $('mdImagesAllBtn').onclick = all ? () => startDownload(all.key, $('mdImagesAllBtn')) : null;
+        el('imageSection').classList.toggle('d-none', single.length === 0);
+        el('imageCount').textContent = single.length ? '(' + single.length + ')' : '';
+        el('imagesAllBtn').classList.toggle('d-none', !all);
+        if (all) el('imagesAllBtn').onclick = () => startDownload(result, all.key, el('imagesAllBtn'));
 
         single.forEach(opt => {
             const item = document.createElement('div');
@@ -621,7 +755,7 @@
             btn.className = 'btn btn-sm btn-encodex-create py-0 px-2';
             btn.title = 'Download ' + opt.label;
             btn.innerHTML = '<i class="fas fa-download"></i>';
-            btn.addEventListener('click', () => startDownload(opt.key, btn));
+            btn.addEventListener('click', () => startDownload(result, opt.key, btn));
             meta.append(text, btn);
 
             const res = document.createElement('div');
@@ -634,130 +768,230 @@
         });
     }
 
-    $('mdAnalyzeForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        hidePageLoader();
-        let url = $('mdUrl').value.trim();
-
-        // "tiktok.com/@user/photo/1" → add https:// (other schemes are still rejected below)
-        if (!/^[a-z][a-z0-9+.-]*:/i.test(url) && /^(\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?([\/?#]|$)/.test(url)) {
-            url = 'https://' + url.replace(/^\/\//, '');
-            $('mdUrl').value = url;
-        }
-
-        if (!/^https?:\/\//i.test(url)) {
-            notify('error', 'Please enter a valid http:// or https:// URL.');
-            return;
-        }
-
-        setBusy(true);
-        $('mdResult').classList.add('d-none');
-        if ($('mdResultProgressSlot').contains($('mdProgress'))) {
-            clearTimeout(pollTimer);
-            $('mdProgress').classList.add('d-none');
-        }
-        $('mdPlaylist').classList.add('d-none');
+    // Paste & Analyze: read the clipboard and analyze it
+    // (Clipboard API needs HTTPS/localhost; otherwise fall back to the user's Ctrl+V)
+    $('mdPasteAnalyzeBtn').addEventListener('click', async () => {
         try {
-            const json  = await postJson(routes.analyze, {url});
-            analyzedUrl = json.data.url;
-            if (json.kind === 'playlist') {
-                renderPlaylist(json.data);
-            } else {
-                renderInfo(json.data);
+            if (!navigator.clipboard?.readText) throw new Error('unsupported');
+            const text = await navigator.clipboard.readText();
+            if (!text.trim()) {
+                notify('error', 'Clipboard is empty.');
+                return;
             }
+            $('mdUrl').value = text.trim();
+            analyzeText(text);
         } catch (err) {
-            notify('error', err.message);
-        } finally {
-            setBusy(false);
+            $('mdUrl').focus();
+            $('mdUrl').select();
+            notify('info', 'Press Ctrl+V to paste the URL — it will be analyzed automatically.');
         }
     });
 
-    function startDownload(format, btn) {
-        if (!analyzedUrl) return;
-        requestDownload(analyzedUrl, format, $('mdTitle').textContent, btn, true);
-    }
+    // Pasting into the field analyzes right away — also while other links are still analyzing
+    $('mdUrl').addEventListener('paste', (e) => {
+        const text = e.clipboardData?.getData('text');
+        if (!text?.trim()) return;
+        e.preventDefault();
+        $('mdUrl').value = text.trim();
+        analyzeText(text);
+    });
 
-    // The progress panel sits under the result card when the download belongs to it,
-    // otherwise (history re-download / resume) in its own card.
-    function showProgress(inResult) {
-        const panel = $('mdProgress');
-        const underResult = inResult && !$('mdResult').classList.contains('d-none');
-
-        if (underResult) {
-            $('mdResultProgressSlot').appendChild(panel);
-            panel.classList.add('border-top', 'pt-3', 'mt-4');
-            $('mdProgressCard').classList.add('d-none');
-        } else {
-            $('mdProgressCard').appendChild(panel);
-            panel.classList.remove('border-top', 'pt-3', 'mt-4');
-            $('mdProgressCard').classList.remove('d-none');
+    $('mdAnalyzeForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        hidePageLoader();
+        if (!analyzeText($('mdUrl').value) && !$('mdUrl').value.trim()) {
+            notify('error', 'Please enter a valid http:// or https:// URL.');
         }
+    });
 
-        panel.classList.remove('d-none');
-        panel.scrollIntoView({behavior: 'smooth', block: 'nearest'});
-    }
-
-    // History "Re-download": same link + format as before (the server re-validates both)
-    window.mdRedownload = function (btn) {
-        requestDownload(btn.dataset.url, btn.dataset.format, btn.dataset.title, btn, false);
+    // ── Server setup ───────────────────────────────────────────────────────────
+    const setupIcons = {
+        ok:   '<i class="fas fa-check-circle text-success"></i>',
+        warn: '<i class="fas fa-exclamation-triangle text-warning"></i>',
+        fail: '<i class="fas fa-times-circle text-danger"></i>',
     };
 
-    async function requestDownload(url, format, title, btn, inResult) {
-        btn.disabled = true;
+    function renderSetup(state) {
+        const tbody = $('mdSetupRows');
+        tbody.replaceChildren();
+        (state.checks || []).forEach(c => {
+            const tr = document.createElement('tr');
+            const icon = document.createElement('td');
+            icon.style.width = '28px';
+            icon.innerHTML = setupIcons[c.status] || '';
+            tr.append(icon, cell(c.name, 'small fw-semibold text-nowrap'), cell(c.detail, 'small text-break'));
+            tbody.appendChild(tr);
+        });
+        $('mdSetupInstall').disabled = !state.can_install;
+        showError($('mdSetupNote'), state.install_note || '');
+    }
 
-        // Show progress immediately, before the server has answered
-        clearTimeout(pollTimer);
-        lastStatus = null;
-        showProgress(inResult);
-        renderStatus({status: 'pending', progress: null, title});
+    function setInstallBusy(busy) {
+        const btn = $('mdSetupInstall');
+        btn.disabled = busy;
+        btn.querySelector('.md-btn-label').classList.toggle('d-none', busy);
+        btn.querySelector('.md-btn-busy').classList.toggle('d-none', !busy);
+    }
 
+    async function loadSetup() {
+        $('mdSetupLoading').classList.remove('d-none');
         try {
-            const json = await postJson(routes.download, {url, format});
-            mdTrack(json.status_url, json.cancel_url, json.data, inResult);
+            renderSetup(await getJson(routes.setup));
         } catch (err) {
-            renderStatus({status: 'failed', progress: null, title, error_message: err.message});
+            showError($('mdSetupNote'), err.message);
         } finally {
-            btn.disabled = false;
+            $('mdSetupLoading').classList.add('d-none');
         }
     }
 
-    function renderStatus(s) {
-        const bar = $('mdProgressBar');
-        const active = ['pending', 'analyzing', 'downloading'].includes(s.status);
-        const known  = s.progress !== null && s.progress !== undefined && s.status === 'downloading';
-
-        $('mdProgressTitle').textContent = s.title || '';
-        $('mdProgressStage').textContent = {
-            pending: 'Waiting to start…', analyzing: 'Preparing…', completed: 'Download ready',
-            failed: 'Download failed', cancelled: 'Download cancelled',
-        }[s.status] || (s.stage ? s.stage + '…' : 'Downloading…');
-
-        // Unknown progress → indeterminate striped bar, never an invented percentage
-        $('mdProgressPercent').textContent = known ? Math.floor(s.progress) + '%' : (s.status === 'completed' ? '100%' : '');
-        bar.style.width = known ? s.progress + '%' : '100%';
-        bar.classList.toggle('progress-bar-striped', active && !known);
-        bar.classList.toggle('progress-bar-animated', active && !known);
-        bar.classList.toggle('bg-success', s.status === 'completed');
-        bar.classList.toggle('bg-danger', s.status === 'failed');
-        bar.classList.toggle('bg-warning', s.status === 'cancelled');
-
-        $('mdSpeed').textContent = s.speed || '–';
-        $('mdEta').textContent   = s.eta || '–';
-        $('mdSize').textContent  = s.filesize || '–';
-
-        showError($('mdProgressError'), s.status === 'failed' ? (s.error_message || 'Unable to download this media.') : '');
-
-        // Toast only when the status changes, not on every poll
-        if (s.status !== lastStatus) {
-            if (s.status === 'completed') notify('success', 'Download ready: ' + (s.title || 'file'));
-            if (s.status === 'failed') notify('error', s.error_message || 'Unable to download this media.');
-            if (s.status === 'cancelled') notify('warning', 'Download cancelled.');
-            lastStatus = s.status;
-        }
-        $('mdCancelBtn').classList.toggle('d-none', !active);
-        $('mdSaveBtn').classList.toggle('d-none', !s.file_url);
-        if (s.file_url) $('mdSaveBtn').href = s.file_url;
+    function openSetup() {
+        bootstrap.Modal.getOrCreateInstance($('mdSetupModal')).show();
     }
+
+    $('mdSetupModal').addEventListener('show.bs.modal', loadSetup);
+
+    $('mdSetupInstall').addEventListener('click', async () => {
+        setInstallBusy(true);
+        $('mdSetupResults').replaceChildren();
+        let state;
+        try {
+            state = await postJson(routes.setupInstall);
+        } catch (err) {
+            state = err.data && err.data.checks ? err.data : null;
+            notify('error', err.message);
+        }
+        setInstallBusy(false);
+        if (!state) return;
+
+        renderSetup(state);
+        (state.results || []).forEach(r => {
+            const div = document.createElement('div');
+            div.className = r.ok ? 'text-success' : 'text-danger';
+            div.textContent = (r.ok ? '✓ ' : '✗ ') + r.tool + ': ' + r.message;
+            $('mdSetupResults').appendChild(div);
+        });
+        const failed = (state.results || []).filter(r => !r.ok);
+        if (state.results && !failed.length) notify('success', 'Tools installed. You can analyze links now.');
+    });
+
+    // ── Download progress panel (one per result card, plus one for history downloads) ──
+    function progressPanel(container, classes = []) {
+        const root = clone('mdProgressTpl');
+        const el = name => part(root, name);
+        root.classList.add(...classes);
+        container.appendChild(root);
+
+        let timer = null;
+        let lastStatus = null;   // last status seen (for one-time toasts)
+
+        function show() {
+            container.classList.remove('d-none');
+            root.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+        }
+
+        function render(s) {
+            const bar = el('bar');
+            const active = ['pending', 'analyzing', 'downloading'].includes(s.status);
+            const known  = s.progress !== null && s.progress !== undefined && s.status === 'downloading';
+
+            el('title').textContent = s.title || '';
+            el('stage').textContent = {
+                pending: 'Waiting to start…', analyzing: 'Preparing…', completed: 'Download ready',
+                failed: 'Download failed', cancelled: 'Download cancelled',
+            }[s.status] || (s.stage ? s.stage + '…' : 'Downloading…');
+
+            // Unknown progress → indeterminate striped bar, never an invented percentage
+            el('percent').textContent = known ? Math.floor(s.progress) + '%' : (s.status === 'completed' ? '100%' : '');
+            bar.style.width = known ? s.progress + '%' : '100%';
+            bar.classList.toggle('progress-bar-striped', active && !known);
+            bar.classList.toggle('progress-bar-animated', active && !known);
+            bar.classList.toggle('bg-success', s.status === 'completed');
+            bar.classList.toggle('bg-danger', s.status === 'failed');
+            bar.classList.toggle('bg-warning', s.status === 'cancelled');
+
+            el('speed').textContent = s.speed || '–';
+            el('eta').textContent   = s.eta || '–';
+            el('size').textContent  = s.filesize || '–';
+
+            showError(el('error'), s.status === 'failed' ? (s.error_message || 'Unable to download this media.') : '');
+
+            // Toast only when the status changes, not on every poll
+            if (s.status !== lastStatus) {
+                if (s.status === 'completed') notify('success', 'Download ready: ' + (s.title || 'file'));
+                if (s.status === 'failed') notify('error', s.error_message || 'Unable to download this media.');
+                if (s.status === 'cancelled') notify('warning', 'Download cancelled.');
+                lastStatus = s.status;
+            }
+            el('cancel').classList.toggle('d-none', !active);
+            el('save').classList.toggle('d-none', !s.file_url);
+            if (s.file_url) el('save').href = s.file_url;
+        }
+
+        function track(statusUrl, cancelUrl, initial) {
+            clearTimeout(timer);
+            lastStatus = null;
+            show();
+            el('cancel').onclick = async () => {
+                el('cancel').disabled = true;
+                try { render((await postJson(cancelUrl)).data); } catch (err) { notify('error', err.message); }
+                el('cancel').disabled = false;
+            };
+
+            let autoSaved = false;
+            let pollFailing = false;
+            const poll = async () => {
+                try {
+                    const s = (await getJson(statusUrl)).data;
+                    render(s);
+                    if (s.status === 'completed' && s.file_url && !autoSaved) {
+                        autoSaved = true;
+                        saveFile(s.file_url);
+                    }
+                    if (['pending', 'analyzing', 'downloading'].includes(s.status)) {
+                        timer = setTimeout(poll, 1500);
+                    }
+                } catch (err) {
+                    if (!pollFailing) notify('error', err.message); // once per outage, not every retry
+                    pollFailing = true;
+                    timer = setTimeout(poll, 5000);
+                    return;
+                }
+                pollFailing = false;
+            };
+
+            if (initial) render(initial);
+            poll();
+        }
+
+        async function request(url, format, title, btn) {
+            btn.disabled = true;
+
+            // Show progress immediately, before the server has answered
+            clearTimeout(timer);
+            lastStatus = null;
+            show();
+            render({status: 'pending', progress: null, title});
+
+            try {
+                const json = await postJson(routes.download, {url, format});
+                track(json.status_url, json.cancel_url, json.data);
+            } catch (err) {
+                render({status: 'failed', progress: null, title, error_message: err.message});
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        return {track, request, stop: () => clearTimeout(timer)};
+    }
+
+    const historyProgress = progressPanel($('mdProgressCard'));
+
+    // History "Resume" / "Re-download" (same link + format as before; the server re-validates both)
+    window.mdTrack = (statusUrl, cancelUrl, initial) => historyProgress.track(statusUrl, cancelUrl, initial);
+    window.mdRedownload = function (btn) {
+        historyProgress.request(btn.dataset.url, btn.dataset.format, btn.dataset.title, btn);
+    };
 
     // Trigger the browser download without navigating away: a navigation would fire
     // "beforeunload" and the theme's full-page loader would cover the progress card.
@@ -785,28 +1019,53 @@
         completed: 'success', failed: 'danger', cancelled: 'warning',
     };
 
-    function updateSelectedCount() {
-        const boxes   = [...document.querySelectorAll('.md-pl-check')];
-        const checked = boxes.filter(b => b.checked).length;
-        $('mdPlSelected').textContent = checked;
-        $('mdPlStart').disabled = checked === 0;
-        $('mdPlAll').checked = boxes.length > 0 && checked === boxes.length;
+    // Small blurred thumbnail with a press-and-hold button (list and bulk rows)
+    function peekThumb(src) {
+        const box = document.createElement('div');
+        box.className = 'md-media md-media-sm rounded';
+        box.style.cssText = 'width:76px;height:43px;';
+        const img = document.createElement('img');
+        img.src = src;
+        img.loading = 'lazy';
+        img.referrerPolicy = 'no-referrer';
+        img.alt = '';
+        img.style.cssText = 'width:76px;height:43px;object-fit:cover;';
+        const peek = document.createElement('button');
+        peek.type = 'button';
+        peek.className = 'md-peek';
+        peek.title = 'Press and hold to view';
+        peek.setAttribute('aria-label', 'Press and hold to view');
+        peek.innerHTML = '<i class="fas fa-eye"></i>';
+        box.append(img, peek);
+        return box;
     }
 
-    function renderPlaylist(pl) {
-        $('mdPlTitle').textContent    = pl.title;
-        $('mdPlPlatform').textContent = pl.platform || '';
-        $('mdPlUploader').textContent = pl.uploader ? '· ' + pl.uploader : '';
+    function renderPlaylist(result, pl) {
+        const card = result.card;
+        const el = name => part(card, name);
+        const checks = () => [...card.querySelectorAll('.md-pl-check')];
+
+        function updateSelectedCount() {
+            const boxes   = checks();
+            const checked = boxes.filter(b => b.checked).length;
+            el('plSelected').textContent = checked;
+            el('plStart').disabled = checked === 0;
+            el('plAll').checked = boxes.length > 0 && checked === boxes.length;
+        }
+
+        result.title = pl.title;
+        el('plTitle').textContent    = pl.title;
+        el('plPlatform').textContent = pl.platform || '';
+        el('plUploader').textContent = pl.uploader ? '· ' + pl.uploader : '';
         const photos = pl.photos || 0;
         const videos = pl.count - photos;
-        $('mdPlCount').textContent = photos
+        el('plCount').textContent = photos
             ? videos + ' video' + (videos === 1 ? '' : 's') + ' · ' + photos + ' photo post' + (photos === 1 ? '' : 's')
             : pl.count + ' item' + (pl.count === 1 ? '' : 's');
-        $('mdPlTypeFilter').classList.toggle('d-none', !(photos && videos));
-        $('mdPlTruncated').classList.toggle('d-none', !pl.truncated);
+        el('plTypeFilter').classList.toggle('d-none', !(photos && videos));
+        el('plTruncated').classList.toggle('d-none', !pl.truncated);
 
-        const tbody = $('mdPlRows');
-        tbody.replaceChildren();
+        const tbody = el('plRows');
 
         pl.entries.forEach(entry => {
             const tr = document.createElement('tr');
@@ -829,25 +1088,7 @@
 
             const tdThumb = document.createElement('td');
             tdThumb.style.width = '84px';
-            if (entry.thumbnail) {
-                const box = document.createElement('div');
-                box.className = 'md-media md-media-sm rounded';
-                box.style.cssText = 'width:76px;height:43px;';
-                const img = document.createElement('img');
-                img.src = entry.thumbnail;
-                img.loading = 'lazy';
-                img.referrerPolicy = 'no-referrer';
-                img.alt = '';
-                img.style.cssText = 'width:76px;height:43px;object-fit:cover;';
-                const peek = document.createElement('button');
-                peek.type = 'button';
-                peek.className = 'md-peek';
-                peek.title = 'Press and hold to view';
-                peek.setAttribute('aria-label', 'Press and hold to view');
-                peek.innerHTML = '<i class="fas fa-eye"></i>';
-                box.append(img, peek);
-                tdThumb.appendChild(box);
-            }
+            if (entry.thumbnail) tdThumb.appendChild(peekThumb(entry.thumbnail));
             tr.appendChild(tdThumb);
 
             tr.appendChild(cell(entry.title, 'small text-break'));
@@ -877,15 +1118,12 @@
             const tdAction = document.createElement('td');
             tdAction.className = 'text-end';
             if (entry.kind === 'playlist' && entry.url) {
-                // Nested list (e.g. a channel's Videos / Shorts tab): open it
+                // Nested list (e.g. a channel's Videos / Shorts tab): open it in a new card
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'btn btn-sm btn-encodex-show';
                 btn.innerHTML = '<i class="fas fa-folder-open me-1"></i> Open';
-                btn.addEventListener('click', () => {
-                    $('mdUrl').value = entry.url;
-                    $('mdAnalyzeForm').requestSubmit();
-                });
+                btn.addEventListener('click', () => analyze(entry.url));
                 tdAction.appendChild(btn);
             }
             tr.appendChild(tdAction);
@@ -893,37 +1131,37 @@
             tbody.appendChild(tr);
         });
 
+        // "Only videos" / "Only photos": select just that type
+        el('plTypeFilter').querySelectorAll('[data-select]').forEach(btn => btn.addEventListener('click', () => {
+            checks().forEach(b => b.checked = b.dataset.media === btn.dataset.select);
+            updateSelectedCount();
+        }));
+
+        el('plAll').addEventListener('change', (e) => {
+            checks().forEach(b => b.checked = e.target.checked);
+            updateSelectedCount();
+        });
+
+        el('plStart').addEventListener('click', async () => {
+            const entries = checks().filter(b => b.checked).map(b => b.value);
+            if (!entries.length) return;
+
+            const btn = el('plStart');
+            btn.disabled = true;
+            try {
+                const json = await postJson(routes.batchStart, {url: result.url, entries, format: el('plPreset').value});
+                notify('info', entries.length + ' item(s) queued for download.');
+                mdTrackBatch(json.status_url, json.cancel_url);
+            } catch (err) {
+                notify('error', err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
         updateSelectedCount();
-        $('mdPlaylist').classList.remove('d-none');
+        el('list').classList.remove('d-none');
     }
-
-    // "Only videos" / "Only photos": select just that type
-    document.querySelectorAll('#mdPlTypeFilter [data-select]').forEach(btn => btn.addEventListener('click', () => {
-        document.querySelectorAll('.md-pl-check').forEach(b => b.checked = b.dataset.media === btn.dataset.select);
-        updateSelectedCount();
-    }));
-
-    $('mdPlAll').addEventListener('change', (e) => {
-        document.querySelectorAll('.md-pl-check').forEach(b => b.checked = e.target.checked);
-        updateSelectedCount();
-    });
-
-    $('mdPlStart').addEventListener('click', async () => {
-        const entries = [...document.querySelectorAll('.md-pl-check:checked')].map(b => b.value);
-        if (!analyzedUrl || !entries.length) return;
-
-        const btn = $('mdPlStart');
-        btn.disabled = true;
-        try {
-            const json = await postJson(routes.batchStart, {url: analyzedUrl, entries, format: $('mdPlPreset').value});
-            notify('info', entries.length + ' item(s) queued for download.');
-            mdTrackBatch(json.status_url, json.cancel_url);
-        } catch (err) {
-            notify('error', err.message);
-        } finally {
-            btn.disabled = false;
-        }
-    });
 
     let batchTimer = null;
 
@@ -963,9 +1201,17 @@
 
         const tbody = $('mdBatchRows');
         tbody.replaceChildren();
-        b.items.forEach(item => {
+        b.items.forEach((item, index) => {
             const tr = document.createElement('tr');
-            const tdTitle = cell(item.title || '—', 'small text-break');
+
+            // Blurred preview, like the list rows (press and hold to view)
+            const tdThumb = document.createElement('td');
+            tdThumb.style.width = '84px';
+            if (item.thumbnail) tdThumb.appendChild(peekThumb(item.thumbnail));
+            tr.appendChild(tdThumb);
+
+            // Untitled until the item is analyzed (some listings carry no titles)
+            const tdTitle = cell(item.title || 'Item ' + (index + 1), 'small text-break');
             if (item.status === 'failed' && item.error_message) {
                 const why = document.createElement('div');
                 why.className = 'text-danger';
@@ -1087,41 +1333,6 @@
         if (e.target.closest('.md-media')) e.preventDefault();
     });
 
-    window.mdTrack = function (statusUrl, cancelUrl, initial, inResult = false) {
-        clearTimeout(pollTimer);
-        lastStatus = null;
-        showProgress(inResult);
-        $('mdCancelBtn').onclick = async () => {
-            $('mdCancelBtn').disabled = true;
-            try { renderStatus((await postJson(cancelUrl)).data); } catch (err) { notify('error', err.message); }
-            $('mdCancelBtn').disabled = false;
-        };
-
-        let autoSaved = false;
-        let pollFailing = false;
-        const poll = async () => {
-            try {
-                const s = (await getJson(statusUrl)).data;
-                renderStatus(s);
-                if (s.status === 'completed' && s.file_url && !autoSaved) {
-                    autoSaved = true;
-                    saveFile(s.file_url);
-                }
-                if (['pending', 'analyzing', 'downloading'].includes(s.status)) {
-                    pollTimer = setTimeout(poll, 1500);
-                }
-            } catch (err) {
-                if (!pollFailing) notify('error', err.message); // once per outage, not every retry
-                pollFailing = true;
-                pollTimer = setTimeout(poll, 5000);
-                return;
-            }
-            pollFailing = false;
-        };
-
-        if (initial) renderStatus(initial);
-        poll();
-    };
 })();
 </script>
 @endpush

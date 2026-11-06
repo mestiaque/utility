@@ -12,6 +12,9 @@ use ME\Utility\Services\MediaDownloader\CookieJar;
 use ME\Utility\Services\MediaDownloader\Data\PlaylistInfo;
 use ME\Utility\Services\MediaDownloader\Exceptions\MediaDownloaderException;
 use ME\Utility\Services\MediaDownloader\MediaDownloadService;
+use ME\Utility\Services\MediaDownloader\ServerCheck;
+use ME\Utility\Services\MediaDownloader\ToolInstaller;
+use ME\Utility\Services\MediaDownloader\YtDlp;
 use ME\Utility\Services\MediaDownloader\UrlValidator;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -31,6 +34,8 @@ class MediaDownloaderController extends Controller
 
     public function index()
     {
+        $this->service->cleanupIfDue();
+
         $downloads = MediaDownload::ownedBy(auth()->id())
             ->latest()
             ->paginate(10)
@@ -183,6 +188,73 @@ class MediaDownloaderController extends Controller
         $this->service->forget($this->findOwned($uuid));
 
         return back()->with('success', 'Download removed from history.');
+    }
+
+    /** Clears the whole history; running downloads are cancelled and every stored file is removed. */
+    public function destroyAll(): RedirectResponse
+    {
+        $count = 0;
+        MediaDownload::ownedBy(auth()->id())->lazyById()->each(function (MediaDownload $download) use (&$count) {
+            $this->service->forget($download);
+            $count++;
+        });
+
+        return back()->with('success', $count . ' download(s) removed from history.');
+    }
+
+    // ── Server setup (shared hosting: install the tools without a terminal) ───
+
+    public function setup(ToolInstaller $installer): JsonResponse
+    {
+        return response()->json($this->setupState($installer));
+    }
+
+    public function setupInstall(ToolInstaller $installer): JsonResponse
+    {
+        if ($reason = $this->cannotInstall($installer)) {
+            return response()->json(['message' => $reason] + $this->setupState($installer), 422);
+        }
+
+        // yt-dlp is always refreshed (sites change often); FFmpeg only when none works yet
+        $tools = [ToolInstaller::YT_DLP];
+        if (app(YtDlp::class)->ffmpegVersion() === null) {
+            $tools[] = ToolInstaller::FFMPEG;
+        }
+
+        $results = [];
+        foreach ($tools as $tool) {
+            try {
+                $results[] = ['tool' => $tool, 'ok' => true, 'message' => $installer->install($tool)];
+            } catch (\RuntimeException $e) {
+                $results[] = ['tool' => $tool, 'ok' => false, 'message' => $e->getMessage()];
+            }
+        }
+
+        // Re-resolve the binaries so the checks below see the fresh install
+        foreach ([YtDlp::class, MediaDownloadService::class] as $abstract) {
+            app()->forgetInstance($abstract);
+        }
+
+        return response()->json(['results' => $results] + $this->setupState($installer));
+    }
+
+    private function setupState(ToolInstaller $installer): array
+    {
+        return [
+            'checks'        => app(ServerCheck::class)->run(),
+            'can_install'   => $this->cannotInstall($installer) === null,
+            'install_note'  => $this->cannotInstall($installer),
+            'tools_dir'     => $installer->directory(),
+        ];
+    }
+
+    private function cannotInstall(ToolInstaller $installer): ?string
+    {
+        if (! ServerCheck::functionEnabled('proc_open')) {
+            return 'The host has disabled proc_open, so no program can run. Enable it first (see the list).';
+        }
+
+        return $installer->supported();
     }
 
     // ── Login cookies (own account, for private media) ───────────────────────
